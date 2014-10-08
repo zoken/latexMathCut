@@ -13,7 +13,7 @@ CPPFLAGS=-O0 -Wall -fPIC  -g
 
 
 latex2rtf: $(OBJECTS)
-	$(CXX) -o latex2rtf $(OBJECTS) -lstdc++
+	$(CXX) -o latexWordCut $(OBJECTS) -lstdc++
 
 latex2rtf_static: $(OBJECTS)
 	$(CXX) -o latex2rtf_static -static $(OBJECTS) -lstdc++
@@ -27,4 +27,5 @@ result.o: result.cpp $(INCLUDES) result.h
 latexparser.o: latexparser.cpp $(INCLUDES) latexparser.h
 equation.o: equation.cpp $(INCLUDES) equation.h
 mathwordtools.o: mathwordtools.cpp $(INCLUDES) mathwordtools.h
-	$(CCC) $(CPPFLAGS) -c $.cpp $(PAORT)
+main.o: main.cpp $(INCLUDES) latexparser.h mathwordtools.h
+	 $(CCC) $(CPPFLAGS) -c $.cpp $(PAORT)

@@ -68,7 +68,20 @@ static void     parseBracket();
 #define CR (char) 0x0d
 #define LF (char) 0x0a
 
-
+int Parser::getIndex(){
+	return readIndex;
+}
+void Parser::setIndex(int index){
+	readIndex = index ;
+}
+char* Parser::getChars(int beg,int end){
+	if(beg<0||end>this->sentencelen||beg>=end)
+		return "";
+	char* ret = (char*) malloc(sizeof(char)*(end-beg+1));//do not contain end.
+	memcpy(ret,this->sentence+beg,end-beg);
+	ret[end-beg]='\0';
+	return ret ;
+}
 void Parser::setSentence(const char* _sentence){
 	if(_sentence == 0){
 		this->readIndex = 0 ; 
@@ -91,7 +104,7 @@ char Parser::getRawTexChar()
 {
 	char	thechar;
 	if(readIndex >= sentencelen)
-		return '\n';
+		return '\0';
 	else{
 		thechar = sentence[readIndex];
 		readIndex++;

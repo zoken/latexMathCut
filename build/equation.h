@@ -11,7 +11,6 @@
 #define EQN_DISPLAYMATH   13  /* \begin{displaymath} ... \end{displaymath} */
 #define EQN_DOLLAR_DOLLAR 14  /* \begin{displaymath} ... \end{displaymath} */
 #define EQN_NO_NUMBER     15	/* \nonumber */
-
 #define ON 0x4000
 #define OFF 0x0000
 
@@ -20,7 +19,7 @@ private:
 	Parser* parser ;
 public:
 	void			regParser(Parser* _parser);
-	void			CmdEquation(int code);
+	char*			CmdEquation(int code);
 	char*           CmdFraction(int code);
 	char*           CmdRoot(int code);
 	char*           CmdLim(int code);

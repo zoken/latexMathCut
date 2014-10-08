@@ -182,24 +182,15 @@ int Equation::EquationNeedsFields(char *eq)
 	return 0;
 }
 
-void Equation::CmdEquation(int code)
+char* Equation::CmdEquation(int code)
 /******************************************************************************
  purpose   : Handle everything associated with equations
  ******************************************************************************/
 {
 	char *pre, *eq, *post;
 	int inline_equation, true_code;
-
-//	true_code = code & ~ON;	
-			
-//	if (!(code & ON)) return ;
-
 	SlurpEquation(code,&pre,&eq,&post);
-	
-	diagnostics(4, "Entering CmdEquation --------%x\n<%s>\n<%s>\n<%s>",code,pre,eq,post);
-    printf("equations:%s/n",eq);
-	inline_equation = (true_code == EQN_MATH) || (true_code == EQN_DOLLAR) || (true_code == EQN_RND_OPEN);
-	
+	return eq;
 	//do something to cut equation.
 	
 }
@@ -225,14 +216,15 @@ char* Equation::CmdFraction(int code)
 ******************************************************************************/
 {
 	char  *denominator, *numerator, *nptr, *dptr;
-
+	int start,end ;
+	start = parser->getIndex();
 	numerator = parser->getBraceParam();
 	nptr = strdup_noendblanks(numerator);
 	parser->skipSpaces();
 	denominator = parser->getBraceParam();
 	dptr = strdup_noendblanks(denominator);
-
-	return strdup_together(nptr,denominator);
+	end = parser->getIndex();
+	return parser->getChars(start,end);
 }
 
 char* Equation::CmdLim(int code)
@@ -249,13 +241,7 @@ parameter: 0=\lim, 1=\limsup, 2=\liminf
     else
         parser->ungetTexChar();
 
-	if (code == 0)
-		s=strdup("lim");
-	else if (code == 1)
-		s=strdup("lim sup");
-	else
-		s=strdup("lim inf");
-	return strdup_together(s,lower_limit);
+	return lower_limit;
 }
 
 char* Equation::CmdIntegral(int code)

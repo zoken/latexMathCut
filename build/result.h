@@ -12,6 +12,7 @@ class Result{
     private:
         list<ResStack> stacks ;
     public:
+        list<char*> words ;
         Result();
         void PushWord(char* _word);
         char* PopWord();

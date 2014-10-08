@@ -1,14 +1,19 @@
-#include <iostream>
+#include <stdlib.h>
 #include "latexparser.h"
 #include "equation.h"
+#include "mathwordtools.h"
 
-int main(int argc,char** argv){
-	Parser p ; 
-	p.setSentence("$1+1$");
-	Equation q ;
-	q.regParser(&p);
-    char c=  p.getTexChar();
-    std::cout << c << std::endl ;
-	q.CmdEquation(EQN_DOLLAR|ON);
+using namespace std ;
+
+int main(int argc,char *argv[]){
+	MathWordTool mwt ; 
+    list<char*> result;
+    printf("input:%s\n",argv[1]);
+	mwt.cut(argv[1],&result);
+    list<char*>::iterator iter;
+    for(iter=result.begin();iter!=result.end();iter++){
+        printf("-------result--------\n");
+        printf("%s\n",*iter);
+    }
     return 0;
 }
