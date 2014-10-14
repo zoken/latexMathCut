@@ -1,4 +1,4 @@
-latex2rtf
+latex math word cut 
 =========
 
 ###NOTE
