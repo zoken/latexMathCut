@@ -1,5 +1,11 @@
 #include "result.h"
 
+struct Content{
+    char* content ;
+    int op ;
+    struct Content *next ;
+};
+
 class MathWordTool{
     private:
         

@@ -18,6 +18,7 @@ private:
 		int readIndex ;
 		int sentencelen ;
 public:
+    char* getCmd();
 	int getIndex();
 	void setIndex(int index);
 	char* getChars(int beg,int end);

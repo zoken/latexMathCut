@@ -19,6 +19,7 @@ private:
 	Parser* parser ;
 public:
 	void			regParser(Parser* _parser);
+    void           CmdChars();
 	char*			CmdEquation(int code);
 	char*           CmdFraction(int code);
 	char*           CmdRoot(int code);
@@ -30,6 +31,7 @@ public:
 	char*			CmdArray(int code);
 	char*			CmdLeftRight(int code);
 	char*			CmdStackrel(int code);
+    char*           CmdBeginEnd(int code);
 	int				EquationNeedsFields(char *eq);
 	void			SlurpEquation(int code, char **pre, char **eq, char **post);
 	char*			SlurpDollarEquation(void);

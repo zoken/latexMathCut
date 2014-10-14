@@ -226,7 +226,14 @@ char* Equation::CmdFraction(int code)
 	end = parser->getIndex();
 	return parser->getChars(start,end);
 }
-
+void Equation::CmdChars(){
+    char cThis;
+    cThis = parser->getTexChar();
+    while((cThis>='A'&&cThis<='Z')||(cThis>='a'&&cThis<='z')){
+        cThis = parser->getTexChar();
+    }
+    parser->ungetTexChar();
+}
 char* Equation::CmdLim(int code)
 /******************************************************************************
  purpose: handles \lim
@@ -303,12 +310,32 @@ char* Equation::CmdLeftRight(int code)
  			 entire equation.  
  ******************************************************************************/
 { 
-	char delim;
+    char* start = "left";
+	char* stop = "right";
+    char* cmd ;
+    char c;
+    int startindex, endindex ;
 
-	delim = parser->getTexChar();
-	if (delim == '\\')			/* might be \{ or \} */
-		delim = parser->getTexChar();
-	return "\left||\right";
+    startindex = parser->getIndex();
+    endindex = -1;
+    c = parser->getTexChar();
+    while((c=parser->getTexChar())!='\0'){
+        if(c=='\\'){
+            cmd = parser->getCmd();
+            if(strcmp(cmd,start)==0){
+                CmdLeftRight(code);
+            }else if(strcmp(cmd,stop)==0){
+                endindex = parser->getIndex()-6;//\right = 6//because index++
+                c = parser->getTexChar();
+                if(c!='.')
+                    parser->ungetTexChar();
+                break;
+            }
+        }
+    }
+    if(endindex == -1)
+        endindex = parser->getIndex();
+	return parser->getChars(startindex,endindex);
 }
 
 char* Equation::CmdArray(int code)
@@ -348,4 +375,35 @@ char* Equation::CmdStackrel(int code)
 	denom = parser->getBraceParam();
 	diagnostics(4, "CmdStackrel() ... \\stackrel{%s}{%s}", numer,denom);
 	return strdup_together(numer,denom) ;
+}
+char* Equation::CmdBeginEnd(int code){
+    char* stop = "end";
+    int need = 1 ; 
+    char* start = "begin";
+    char c ;
+    char* cmd ;
+    char* tmpcontent;
+    int startindex,endindex;
+    while((c=parser->getTexChar())!='{');//{array}
+    tmpcontent = parser->getDelimitedText('{','}',false);
+    if((c=parser->getTexChar())=='{');//{1} // no space betwwen [array}
+        tmpcontent = strdup_together(tmpcontent,parser->getDelimitedText('{','}',false));
+    startindex = parser->getIndex();
+    endindex = -1 ;
+    while((c=parser->getTexChar())!='\0'){
+        if(c=='\\'){
+            cmd = parser->getCmd();
+            if(strcmp(cmd,start)==0){
+                CmdBeginEnd(code);
+            }else if(strcmp(cmd,stop)==0){
+                endindex = parser->getIndex()-4;//\end
+                while((c=parser->getTexChar())!='{');
+                parser->getDelimitedText('{','}',false);
+                break;
+            }
+        }
+    }
+    if(endindex == -1)
+        endindex = parser->getIndex();
+    return parser->getChars(startindex,endindex);
 }

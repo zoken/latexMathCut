@@ -68,6 +68,26 @@ static void     parseBracket();
 #define CR (char) 0x0d
 #define LF (char) 0x0a
 
+char* Parser::getCmd(){
+    char buf[20];
+    int num = 0 ;
+    char c ;
+    c = getTexChar();
+    if(c=='{'){
+        buf[num++]= c;
+        
+    }else{
+        while((c<='z'&&c>='a')||(c<='Z'&&c>='A')){
+            buf[num++] = c ;
+            c = getTexChar();
+        }   
+        ungetTexChar();
+    }
+    buf[num++]='\0';
+    char* ret = (char*)malloc(sizeof(char)*num);
+    strcpy(ret,buf);
+    return ret ;
+}
 int Parser::getIndex(){
 	return readIndex;
 }
@@ -75,8 +95,10 @@ void Parser::setIndex(int index){
 	readIndex = index ;
 }
 char* Parser::getChars(int beg,int end){
-	if(beg<0||end>this->sentencelen||beg>=end)
+	if(beg<0||beg>=end)
 		return "";
+    if(end > this->sentencelen)
+        end = this->sentencelen ;
 	char* ret = (char*) malloc(sizeof(char)*(end-beg+1));//do not contain end.
 	memcpy(ret,this->sentence+beg,end-beg);
 	ret[end-beg]='\0';
@@ -103,11 +125,11 @@ char Parser::getRawTexChar()
 ****************************************************************************/
 {
 	char	thechar;
-	if(readIndex >= sentencelen)
+	if(readIndex >= sentencelen){
+        readIndex++;
 		return '\0';
-	else{
-		thechar = sentence[readIndex];
-		readIndex++;
+	}else{
+		thechar = sentence[readIndex++];
 		return thechar; 
 	}
 }
@@ -218,7 +240,6 @@ char* Parser::getDelimitedText(char left, char right, bool raw)
 	int				lefts_needed = 1;
 	char			marker = ' ';
 	char			last_char = ' ';
-		
 	while (lefts_needed && size < 4999) {
 
 		size++;
@@ -236,7 +257,6 @@ char* Parser::getDelimitedText(char left, char right, bool raw)
 		} else 
 			lefts_needed--;
 	}
-
 	buffer[size] = '\0';		/* overwrite final delimeter */
 	if (size == 4999)
 		diagnostics(ERROR, "Misplaced '%c' (Not found within 5000 chars)");
