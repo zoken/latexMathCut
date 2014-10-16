@@ -376,6 +376,22 @@ char* Equation::CmdStackrel(int code)
 	diagnostics(4, "CmdStackrel() ... \\stackrel{%s}{%s}", numer,denom);
 	return strdup_together(numer,denom) ;
 }
+char* Equation::CmdKuoHao(char start,char end){
+    int need = 1;
+    char cThis ;
+    int begin = parser->getIndex();
+    while((cThis = parser->getTexChar())!='\0'){
+        if(cThis == end){
+            need--;
+            if(need <= 0 )
+                break;
+        }else if(cThis == start){
+            need++;
+        }
+    }
+    return parser->getChars(begin,parser->getIndex()-1);
+}
+
 char* Equation::CmdBeginEnd(int code){
     char* stop = "end";
     int need = 1 ; 

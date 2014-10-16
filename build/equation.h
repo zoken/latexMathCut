@@ -19,7 +19,8 @@ private:
 	Parser* parser ;
 public:
 	void			regParser(Parser* _parser);
-    void           CmdChars();
+    void            CmdChars();
+    char*           CmdKuoHao(char start,char end);
 	char*			CmdEquation(int code);
 	char*           CmdFraction(int code);
 	char*           CmdRoot(int code);

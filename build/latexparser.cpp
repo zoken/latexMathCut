@@ -95,8 +95,10 @@ void Parser::setIndex(int index){
 	readIndex = index ;
 }
 char* Parser::getChars(int beg,int end){
+    char space[1] ;
+    space[0] = '\0';
 	if(beg<0||beg>=end)
-		return "";
+		return space;
     if(end > this->sentencelen)
         end = this->sentencelen ;
 	char* ret = (char*) malloc(sizeof(char)*(end-beg+1));//do not contain end.
