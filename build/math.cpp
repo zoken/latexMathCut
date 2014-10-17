@@ -514,13 +514,3 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
         resultlist->push_back(*iter);
     }
 }
-int main(int argc, char* argv[]){
-    MathWordTool mwt ;
-    list<char*> resultlist ;
-    mwt.cut(argv[1],&resultlist);
-    list<char*>::iterator iter ;
-    for(iter=resultlist.begin();iter!=resultlist.end();iter++){
-        cout << *iter << endl;
-    }
-
-}   
