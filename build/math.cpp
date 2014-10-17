@@ -25,6 +25,67 @@
 
 CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
 
+char* getBeginMathString(char* sentence){
+    int len,i;
+    len = strlen(sentence);
+    for(i = 0 ; i < len ; i++){
+        if((sentence[i]>='a'&&sentence[i]<='z')||(sentence[i]>='A'&&sentence[i]<='Z')
+                 ||(sentence[i]>='0'&&sentence[i]<='9'))
+            continue ;
+        else if(sentence[i]=='\342'){
+            i++;
+            if(sentence[i] == '\210' && sentence[i+1] == '\240')
+                ;
+            else if(sentence[i] == '\226' && sentence[i+1] == '\263')
+                ;
+            else if(sentence[i] == '\211' && sentence[i+1] == '\214')
+                ;
+            else
+                i--;
+            //sanjiaoxing & jiaodu& dushu
+        }else if(sentence[i] == '\302'){
+            i++;
+            if(sentence[i] == '\260' && sentence[i+1] == '\357')
+                ;
+            else
+                i--;
+        }else
+            break;
+    }
+    if(i == len)
+        i = 0 ;
+    char* result = (char*)malloc(sizeof(char)*(i+1));
+    if(i!=0)
+        memcpy(result,sentence,i);
+    result[i] = '\0';
+    return result ;
+}
+
+char* getLastString(char* sentence){
+    int len = strlen(sentence);
+    int index ;
+    for(index = len-1 ; index >= 0 ; index--){
+        if((sentence[index]>='a'&&sentence[index]<='z')||(sentence[index]>='A'&&sentence[index]<='Z')
+                    ||(sentence[index]>='0'&&sentence[index]<='9')){
+            continue ;
+        }else if(sentence[index] == '\240' && sentence[index-1] == '\210' && sentence[index-2] == '\342'){
+            index = index-2;
+        }else if(sentence[index] == '\214' && sentence[index-1] == '\211' && sentence[index-2] == '\342'){
+            index = index-2;
+        }else if(sentence[index] == '\263' && sentence[index-1] == '\226' && sentence[index-2] == '\342'){
+            index = index -2;
+        }else if(sentence[index] == '\357' && sentence[index-1] == '\260' && sentence[index-2] == '\302'){
+            index = index -2;
+        }else
+            break;
+    }
+    if(index<0)
+        index = 0 ;
+    char* result = (char*)malloc(sizeof(char)*(len-index));
+    strcpy(result,sentence+index+1);
+    return result;
+}
+
 bool isString(const char* sentence){
     int len,i;
     len = strlen(sentence);
@@ -109,7 +170,9 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     int bufcurrentindex = 0;
     int op = 0 ; //must init. else op!=0 will execute with error message.
     char * word ;
+    char* tmp ;
     char * cmd ;
+
     EQS *head;
     EQS *current; 
     vector<string> words ;
@@ -125,7 +188,14 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 if(bufcurrentindex > (buflastindex+1)){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
-                    _segment.cut(word,words);
+                    if(isString(word) == false){
+                        _segment.cut(word,words);
+                        for(it=words.begin();it!=words.end();it++){
+                            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+                            strcpy(word,(*it).c_str());
+                            resultlist->push_back(word);
+                        }
+                    }
                     for(it=words.begin();it!=words.end();it++){
                            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
                            strcpy(word,(*it).c_str());
@@ -157,7 +227,16 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
                     currentResult.push_back(word);
-                    _segment.cut(word,words);
+                    if(isString(word) == false){
+                        _segment.cut(word,words);
+                        for(it=words.begin();it!=words.end();it++){
+                            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+                            strcpy(word,(*it).c_str());
+                            resultlist->push_back(word);
+                        }
+                    }
+                }else{
+                    word = NULL ;
                 }
                 buflastindex = bufcurrentindex -1; 
 //                word = q.Cmd();
@@ -194,7 +273,19 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     printf("cmd:%s\nparam:%s\n",cmd,param);
                     p.setIndex(strlen(sentence)+1);// to break
                 }else{
-                    continue ;
+                    break ;
+                }
+                if(word!=NULL&&strlen(word)>0){
+                    if(current->content!=NULL){
+                        current->op = 0 ;
+                        current->nexteq = new EQS();
+                        current = current->nexteq ;
+                    }
+                    current->content = word;
+                    current->op = MULOP;
+                    current->opname=' ';
+                    current->nexteq = new EQS();
+                    current = current->nexteq;
                 }
                 bufcurrentindex = p.getIndex();
                 currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
@@ -219,9 +310,28 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             case '|':
                 cEnd = '|';
                 break;
+            case '\357':
+                cNext = p.getTexChar();
+                if(cNext == '\274'){
+                    cNext = p.getTexChar();
+                    if(cNext == '\210'){
+                        cThis = '(';
+                        cEnd = '?';
+                    }
+                    else{
+                        p.ungetTexChar();
+                        p.ungetTexChar();
+                    }
+                }else{
+                    p.ungetTexChar();
+                }
+                break;
             case '^':
                 op = FLATOP ;
                 break ;
+            case '_':
+                op = FLATOP;
+                break;
             case '+':
                 op = ADDOP;
                 break; 
@@ -270,8 +380,30 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             case '=':
                 op = EQUALOP;
                 break;
-            case '_':
-                break;
+            case ',':
+                if(bufcurrentindex > (buflastindex+1)){
+                    if(current->content!=NULL){
+                        current->op = 0 ;
+                        current->nexteq = new EQS();
+                        current = current->nexteq ;
+                    }
+                    word = p.getChars(buflastindex, bufcurrentindex-1);
+                    current->content = word ;
+                    buflastindex = p.getIndex();
+                 }
+                 break;
+            case '.':
+                if(bufcurrentindex > (buflastindex+1)){
+                    if(current->content!=NULL){
+                        current->op = 0 ;
+                        current->nexteq = new EQS();
+                        current = current->nexteq ;
+                    }
+                    word = p.getChars(buflastindex, bufcurrentindex-1);
+                    current->content = word ;
+                    buflastindex = p.getIndex();
+                }
+                break;                
             default:
                 break ;
         }
@@ -282,11 +414,22 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     current->nexteq = new EQS();
                     current = current->nexteq ;
                 }
-                current->content = p.getChars(buflastindex, bufcurrentindex-1);
-                currentResult.push_back(current->content);
-   //             _segment.cut(word,words);
+                word = p.getChars(buflastindex, bufcurrentindex-1);
+                current->content = word ;
+                if(isString(current->content)==false){
+                    _segment.cut(current->content,words);
+                    for(it=words.begin();it!=words.end();it++){
+                        word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+                        strcpy(word,(*it).c_str());
+                        resultlist->push_back(word);
+                    }
+                }else
+                    currentResult.push_back(current->content);
             }
-            buflastindex = p.getIndex()-1;
+            if(cThis == '(' && cEnd == '?' )
+                buflastindex = p.getIndex()-3;
+            else
+                buflastindex = p.getIndex()-1;
             word = q.CmdKuoHao(cThis,cEnd);
             bufcurrentindex = p.getIndex();
             currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
@@ -308,14 +451,38 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     current->nexteq = new EQS();
                     current = current->nexteq ;
                  }
-                 current->content = p.getChars(buflastindex, bufcurrentindex-1);
-                 currentResult.push_back(current->content);
+                 tmp = p.getChars(buflastindex, bufcurrentindex-1);
+                 if(isString(tmp)){
+                    current->content = tmp ;
+                    currentResult.push_back(current->content);
+                 }else{
+                    word = getBeginMathString(tmp);//if to end .then return null; 
+                    if(strlen(word)>0){
+                        current->content = word; 
+                        current->op = 0;
+                        current->nexteq = new EQS();
+                        current = current->nexteq ;
+                    }
+                    current->content = getLastString(tmp);
+                    _segment.cut(tmp,words);
+                    for(it=words.begin();it!=words.end();it++){
+                        word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+                        strcpy(word,(*it).c_str());
+                        resultlist->push_back(word);
+                    }
+                    free(tmp);
+                 }
             } 
             cNext = p.getTexChar();
             if(cNext == '=')
                 current->beiyong_opname = '=';
             else
                 p.ungetTexChar();
+            if(current->content == NULL){
+                word = (char*)malloc(sizeof(char));
+                word[0] = '\0';
+                current->content = word ;
+            }
             current->op = op ;
             current->opname = cThis ;
             current->nexteq = new EQS();
@@ -335,11 +502,11 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     if(strlen(current->content)>0){
  //       currentResult.push_back(current->content);
         _segment.cut(current->content,words);
-    }
-    for(it=words.begin();it!=words.end();it++){
-       word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-       strcpy(word,(*it).c_str());
-       resultlist->push_back(word);
+        for(it=words.begin();it!=words.end();it++){
+            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+            strcpy(word,(*it).c_str());
+            resultlist->push_back(word);
+        }
     }
     combineEquations(head,&currentResult);
     list<char*>::iterator iter ;

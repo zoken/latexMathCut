@@ -380,13 +380,32 @@ char* Equation::CmdKuoHao(char start,char end){
     int need = 1;
     char cThis ;
     int begin = parser->getIndex();
-    while((cThis = parser->getTexChar())!='\0'){
-        if(cThis == end){
-            need--;
-            if(need <= 0 )
-                break;
-        }else if(cThis == start){
-            need++;
+    if(start=='('&&end=='?'){
+        while((cThis = parser->getTexChar())!='\0'){
+            if(cThis == '\357'){
+                cThis = parser->getTexChar();
+                if(cThis == '\274'){
+                    cThis = parser->getTexChar();
+                    if(cThis == '\210')
+                        need++;
+                    else if(cThis == '\211'){
+                        need--;
+                        if(need<=0){
+                            return parser->getChars(begin,parser->getIndex()-3);
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        while((cThis = parser->getTexChar())!='\0'){
+            if(cThis == end){
+                need--;
+                if(need <= 0 )
+                    break;
+            }else if(cThis == start){
+                need++;
+            }
         }
     }
     return parser->getChars(begin,parser->getIndex()-1);

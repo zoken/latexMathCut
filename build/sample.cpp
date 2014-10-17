@@ -17,9 +17,9 @@ int i;
     for (i = 0 ; i < num ;i++){
         mwt.cut("$1+1$",&resultlist);
         list<char*>::iterator iter ;
-//        for(iter = resultlist.begin();iter!=resultlist.end();iter++){
-//            cout << *iter << endl;
-//        }
+        for(iter = resultlist.begin();iter!=resultlist.end();iter++){
+            cout << *iter << endl;
+        }
     }
     int end = clock();
     if((end-start)>=10000)
@@ -29,8 +29,8 @@ int main(int n,char** argv)
 {
     int i,ret ;
     //-------------------------------finished init
-    int customernum =10000 ;
-    pthread_t id[10000];
+    int customernum =1000 ;
+    pthread_t id[1000];
     for(i = 0 ; i < customernum ; i++){
         ret=pthread_create(&id[i],NULL,thread,NULL);
 //    for (int i = 0 ; i < 10 ;i++){

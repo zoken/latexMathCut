@@ -1,4 +1,4 @@
-OBJECTS= tools.o util.o result.o latexparser.o equation.o mathwordtools.o main.o
+OBJECTS= tools.o util.o result.o latexparser.o equation.o math.o
 
 INCLUDES=tools.h util.h result.h latexparser.h equation.h mathwordtools.h
 
