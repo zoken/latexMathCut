@@ -156,6 +156,25 @@ void combineEquations(struct EQS *head , list<char*>* results){
         results->push_back(current->content);
     }
 }
+void AddContent(char* content, EQS* current){
+    if(current->content!=NULL){
+        current->op = 0 ;
+        current->nexteq = new EQS();
+        current = current->nexteq ;
+    }
+    current->content = content ;
+}
+void jiebaCut(char* content, list<char*>* resultlist){
+    vector<string> words ;
+    vector<string>::iterator it;
+    char* word ;
+    _segment.cut(content,words);
+    for(it=words.begin();it!=words.end();it++){
+        word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
+        strcpy(word,(*it).c_str());
+        resultlist->push_back(word);
+    }
+}
 void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     if(isString(sentence))
         return ;
@@ -189,18 +208,8 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
                     if(isString(word) == false){
-                        _segment.cut(word,words);
-                        for(it=words.begin();it!=words.end();it++){
-                            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-                            strcpy(word,(*it).c_str());
-                            resultlist->push_back(word);
-                        }
+                        jiebaCut(word,resultlist);
                     }
-                    for(it=words.begin();it!=words.end();it++){
-                           word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-                           strcpy(word,(*it).c_str());
-                           resultlist->push_back(word);
-                     }
               //      currentResult.push_back(word);
                 }
                 buflastindex = bufcurrentindex-1;
@@ -214,12 +223,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 bufcurrentindex = p.getIndex();
                 currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
                 buflastindex = bufcurrentindex ;
-                if(current->content!=NULL){
-                    current->op = 0 ; 
-                    current->nexteq = new EQS();
-                    current = current->nexteq ;
-                }
-                current->content = currentResult.back();
+                AddContent(currentResult.back(),current);
                 cut(word,resultlist);
                 break;
             case '\\':
@@ -228,18 +232,12 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     word = p.getChars(buflastindex,bufcurrentindex-1);
                     currentResult.push_back(word);
                     if(isString(word) == false){
-                        _segment.cut(word,words);
-                        for(it=words.begin();it!=words.end();it++){
-                            word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-                            strcpy(word,(*it).c_str());
-                            resultlist->push_back(word);
-                        }
+                        jiebaCut(word,resultlist);
                     }
                 }else{
                     word = NULL ;
                 }
                 buflastindex = bufcurrentindex -1; 
-//                word = q.Cmd();
                 cNext = p.getTexChar();
                 if(cNext == '\\'){
                     buflastindex = p.getIndex();
@@ -275,15 +273,10 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 }else{
                     break ;
                 }
-                if(word!=NULL&&strlen(word)>0){
-                    if(current->content!=NULL){
-                        current->op = 0 ;
-                        current->nexteq = new EQS();
-                        current = current->nexteq ;
-                    }
-                    current->content = word;
+                if(word!=NULL&&strlen(word)>0){//dian cheng
+                    AddContent(word,current);
                     current->op = MULOP;
-                    current->opname=' ';
+                    current->opname = ' ';
                     current->nexteq = new EQS();
                     current = current->nexteq;
                 }
@@ -382,25 +375,15 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 break;
             case ',':
                 if(bufcurrentindex > (buflastindex+1)){
-                    if(current->content!=NULL){
-                        current->op = 0 ;
-                        current->nexteq = new EQS();
-                        current = current->nexteq ;
-                    }
                     word = p.getChars(buflastindex, bufcurrentindex-1);
-                    current->content = word ;
+                    AddContent(word,current);
                     buflastindex = p.getIndex();
                  }
                  break;
             case '.':
                 if(bufcurrentindex > (buflastindex+1)){
-                    if(current->content!=NULL){
-                        current->op = 0 ;
-                        current->nexteq = new EQS();
-                        current = current->nexteq ;
-                    }
                     word = p.getChars(buflastindex, bufcurrentindex-1);
-                    current->content = word ;
+                    AddContent(word,current);
                     buflastindex = p.getIndex();
                 }
                 break;                
@@ -409,20 +392,10 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
         }
         if(cEnd!='\n'){
             if(bufcurrentindex > (buflastindex+1)){
-                if(current->content!=NULL){
-                    current->op = 0 ;
-                    current->nexteq = new EQS();
-                    current = current->nexteq ;
-                }
                 word = p.getChars(buflastindex, bufcurrentindex-1);
-                current->content = word ;
+                AddContent(word,current);
                 if(isString(current->content)==false){
-                    _segment.cut(current->content,words);
-                    for(it=words.begin();it!=words.end();it++){
-                        word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-                        strcpy(word,(*it).c_str());
-                        resultlist->push_back(word);
-                    }
+                    jiebaCut(current->content,resultlist);
                 }else
                     currentResult.push_back(current->content);
             }
@@ -434,12 +407,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             bufcurrentindex = p.getIndex();
             currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
             buflastindex = p.getIndex() ;
-            if(current->content!=NULL){
-                current->op = 0 ;
-                current->nexteq = new EQS();
-                current = current->nexteq ;
-           }
-            current->content = currentResult.back();
+            AddContent(currentResult.back(),current);
             cut(word,resultlist);
             cEnd = '\n';//handle '{}' and so on.
             buflastindex = p.getIndex();
