@@ -1,10 +1,9 @@
 #include "stdlib.h"
 #include <list>
-using namespace std;
 
 class MathWordTool{
     private:
     public:
-        void cut(const char* sentence,list<char*>* result);
+        void cut(const char* sentence,std::list<char*>* result);
 
 };

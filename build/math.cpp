@@ -24,7 +24,7 @@
 #define FLATOP 5
 
 CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
-
+using namespace std;
 char* getBeginMathString(char* sentence){
     int len,i;
     len = strlen(sentence);

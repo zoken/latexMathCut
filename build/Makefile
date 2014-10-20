@@ -13,7 +13,7 @@ CPPFLAGS=-O0 -Wall -fPIC  -g
 
 
 latexWord: $(OBJECTS)
-	$(CXX) $(OBJECTS) -shared -o liblatexWord.so
+	$(CXX) $(OBJECTS) -shared -o libWordCut.so
 
 lxp: $(OBJECTS)
 	purify  -chain_length=10 -cache-dir=/u/medee/0/miaou/grimm/raweb/lx/TMP g++ -o lxp $(OBJECTS) -g
