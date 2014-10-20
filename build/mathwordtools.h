@@ -1,4 +1,6 @@
-#include "result.h"
+#include "stdlib.h"
+#include <list>
+using namespace std;
 
 class MathWordTool{
     private:
