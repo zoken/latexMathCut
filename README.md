@@ -1,6 +1,7 @@
 LATEX WORD CUT
 -------------
-2014.10.17
+2014.10.20
+
 
 ###NOTES
     1. This project contains cppjieba and latex2rtf.
@@ -12,3 +13,6 @@ LATEX WORD CUT
             `./test \`cat testfile\``
     4. cppjieba's code = *.hpp & Limonp/. we use it as source code.
     5. other testinputs : ~/jy.test(PRIVATE)
+
+####TAGS
+    1. v1.0 finished.
