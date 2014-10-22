@@ -10,7 +10,7 @@ LATEX WORD CUT
         - test.cpp use class of MathWordTool's cut method. CUT is the function interface for user using cut function.
         - testfile is the test input file.
         - TEST COMMANDS:
-            `./test cat testfile`
+            ./test `cat testfile`
     4. cppjieba's code = *.hpp & Limonp/. we use it as source code.
     5. other testinputs : ~/jy.test(PRIVATE)
 
