@@ -1,6 +1,6 @@
 LATEX WORD CUT
 -------------
-2014.10.20
+2014.10.22
 
 
 ###NOTES
@@ -10,13 +10,20 @@ LATEX WORD CUT
         - test.cpp use class of MathWordTool's cut method. CUT is the function interface for user using cut function.
         - testfile is the test input file.
         - TEST COMMANDS:
-            `./test `cat testfile``
+            ./test `cat testfile`
     4. cppjieba's code = *.hpp & Limonp/. we use it as source code.
     5. other testinputs : ~/jy.test(PRIVATE)
 
-###HOW TO USE THIS FUNCTION IN OTHER PROGRAM
-    1. import libWord.so & mathwordtools.h
-    2. use like test.cpp or sample.cpp
+###USAGE
+    1. import libWordCut.so & mathwordtools.h
+    2. use like test.cpp and sample.cpp
+        MathWordTool mwt ;
+        list<char*> resultlist ;
+        const char* sentence = "[中文|英文|exp]+";
+        mwt.cut(sentence,&resultlist);
 
 ####TAGS
     1. v1.0 finished.
+    2. v1.1 finished. fix some bugs and add more math operate.
+    
+
