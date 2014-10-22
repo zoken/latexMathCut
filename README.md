@@ -14,9 +14,13 @@ LATEX WORD CUT
     4. cppjieba's code = *.hpp & Limonp/. we use it as source code.
     5. other testinputs : ~/jy.test(PRIVATE)
 
-###HOW TO USE THIS FUNCTION IN OTHER PROGRAM
+###USAGE
     1. import libWord.so & mathwordtools.h
     2. use like test.cpp and sample.cpp
+        MathWordTool mwt ;
+        list<char*> resultlist ;
+        const char* sentence = "[中文|英文|exp]+";
+        mwt.cut(sentence,&resultlist);
 
 ####TAGS
     1. v1.0 finished.
