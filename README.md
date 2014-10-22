@@ -15,7 +15,7 @@ LATEX WORD CUT
     5. other testinputs : ~/jy.test(PRIVATE)
 
 ###USAGE
-    1. import libWord.so & mathwordtools.h
+    1. import libWordCut.so & mathwordtools.h
     2. use like test.cpp and sample.cpp
         MathWordTool mwt ;
         list<char*> resultlist ;
