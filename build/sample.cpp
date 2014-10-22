@@ -1,28 +1,29 @@
 #include <pthread.h>
-#include <time.h>
 #include <iostream>
 #include "latexparser.h"
 #include "equation.h"
 #include "mathwordtools.h"
-
+extern "C"{
+#include "tools.h"
+}
 using namespace std; 
 
 MathWordTool mwt ;
 void* thread(void* arg)
 {
-int i;
-    int start = clock();
+    int i;
+    double start = getTimeMillis();
     list<char*> resultlist ;
     int num = 1;
     for (i = 0 ; i < num ;i++){
         mwt.cut("$1+1$",&resultlist);
         list<char*>::iterator iter ;
-        for(iter = resultlist.begin();iter!=resultlist.end();iter++){
-            cout << *iter << endl;
-        }
+ //       for(iter = resultlist.begin();iter!=resultlist.end();iter++){
+ //           cout << *iter << endl;
+ //       }
     }
-    int end = clock();
-    if((end-start)>=10000)
+    double end = getTimeMillis();
+    if((end-start)>=1)
         cout << (end - start) << endl ;
 }
 int main(int n,char** argv)
@@ -42,7 +43,6 @@ int main(int n,char** argv)
 //        sleep(1);
 //    }
         if(ret!=0){
-            printf ("Create pthread error!\n");
             return 1;
         }       
     }
