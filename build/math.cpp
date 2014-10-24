@@ -284,9 +284,11 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 }else if(strcmp(cmd,"begin")==0){
                     param = q.CmdBeginEnd(0);
                 }else if(strlen(cmd)>0){
-                    param = p.getChars(p.getIndex(),strlen(sentence));
-                    printf("cmd:%s\nparam:%s\n",cmd,param);
-                    p.setIndex(strlen(sentence)+1);// to break
+                 //   param = p.getChars(p.getIndex(),strlen(sentence));
+                    param =p.getChars(0,0);
+                 //   printf("cmd:%s\nparam:%s\n",cmd,param);
+                 //   p.setIndex(strlen(sentence)+1);// to break
+
                 }else{
                     break ;
                 }

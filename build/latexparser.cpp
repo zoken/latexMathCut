@@ -44,7 +44,7 @@ typedef struct InputStackType
 } InputStackType;
 
 #define PARSER_SOURCE_MAX 100
-
+#define PARSER_CMD_MAX 1024
 static InputStackType   g_parser_stack[PARSER_SOURCE_MAX];
 
 static int              g_parser_depth = -1;
@@ -69,7 +69,7 @@ static void     parseBracket();
 #define LF (char) 0x0a
 
 char* Parser::getCmd(){
-    char buf[20];
+    char buf[PARSER_CMD_MAX];
     int num = 0 ;
     char c ;
     c = getTexChar();
@@ -77,7 +77,7 @@ char* Parser::getCmd(){
         buf[num++]= c;
         
     }else{
-        while((c<='z'&&c>='a')||(c<='Z'&&c>='A')){
+        while(((c<='z'&&c>='a')||(c<='Z'&&c>='A'))&&num+1<PARSER_CMD_MAX){
             buf[num++] = c ;
             c = getTexChar();
         }   
