@@ -24,6 +24,7 @@
 #define FLATOP 5
 
 CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
+//CppJieba::KeywordExtractor extractor("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/idf.utf8","../dict/stop_words.utf8");
 using namespace std;
 char* getBeginMathString(char** _sentence){
     int len,i;
@@ -226,8 +227,8 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     word = p.getChars(buflastindex,bufcurrentindex-1);
                     if(isString(word) == false){
                         jiebaCut(word,resultlist);
-                    }
-              //      currentResult.push_back(word);
+                    }else
+                        currentResult.push_back(word);
                 }
                 buflastindex = bufcurrentindex-1;
                 cNext = p.getTexChar();
@@ -247,9 +248,11 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 if(bufcurrentindex > buflastindex+1){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
-                    currentResult.push_back(word);
                     if(isString(word) == false){
                         jiebaCut(word,resultlist);
+                        currentResult.push_back(resultlist->back());
+                    }else{
+                        currentResult.push_back(word);
                     }
                 }else{
                     word = NULL ;
