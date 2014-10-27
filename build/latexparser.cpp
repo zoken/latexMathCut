@@ -128,7 +128,8 @@ char Parser::getRawTexChar()
 {
 	char	thechar;
 	if(readIndex >= sentencelen){
-        readIndex++;
+//        readIndex++;
+        readIndex = sentencelen ;
 		return '\0';
 	}else{
 		thechar = sentence[readIndex++];
@@ -238,17 +239,13 @@ char* Parser::getDelimitedText(char left, char right, bool raw)
  ******************************************************************************/
 {
 	char            buffer[5000];
-	int				size = -1;
+	int				size = 0;
 	int				lefts_needed = 1;
 	char			marker = ' ';
 	char			last_char = ' ';
-	while (lefts_needed && size < 4999) {
-
-		size++;
+	while (lefts_needed && size < 4999 && (buffer[size]=getTexChar())!='\0') {
 		last_char = marker;
-		buffer[size] = (raw) ? getRawTexChar() : getTexChar();
 		marker = buffer[size];
-
 		if (buffer[size] != right || last_char == '\\') {    	/* avoid \}  */
 			if (buffer[size] == left && last_char != '\\') 		/* avoid \{ */
 				lefts_needed++;
@@ -258,6 +255,7 @@ char* Parser::getDelimitedText(char left, char right, bool raw)
 			}
 		} else 
 			lefts_needed--;
+        size++ ;
 	}
 	buffer[size] = '\0';		/* overwrite final delimeter */
 	if (size == 4999)
