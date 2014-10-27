@@ -380,7 +380,7 @@ char* Equation::CmdKuoHao(char start,char end){
     int need = 1;
     char cThis ;
     int begin = parser->getIndex();
-    if(start=='('&&end=='?'){
+    if(start=='('){
         while((cThis = parser->getTexChar())!='\0'){
             if(cThis == '\357'){
                 cThis = parser->getTexChar();
@@ -395,6 +395,12 @@ char* Equation::CmdKuoHao(char start,char end){
                         }
                     }
                 }
+            }else if(cThis == ')'){
+                need--;
+                if(need <= 0 )
+                    return parser->getChars(begin,parser->getIndex()-1);
+            }else if(cThis =='('){
+                need++;
             }
         }
     }else{
