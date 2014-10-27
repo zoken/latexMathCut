@@ -275,6 +275,8 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     param = q.CmdLim(0);
                 }else if(strcmp(cmd,"sum")==0||strcmp(cmd,"prod")==0||strcmp(cmd,"int")==0||strcmp(cmd,"iint")==0){
                     param = q.CmdIntegral(0);
+                    if (param == NULL)
+                        param = p.getChars(0,0);
                 }else if(strcmp(cmd,"left")==0){
                     cNext = p.getTexChar();
                     if(cNext!='.')
@@ -311,6 +313,8 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     current = current->nexteq ;
                 }
                 current->content = currentResult.back();
+                if(param == NULL)
+                    param = p.getChars(0,0);
                 cut(param,resultlist);
                 break ;
             case '{':

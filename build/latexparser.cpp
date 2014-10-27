@@ -391,7 +391,10 @@ char* Parser::getBracketParam(void)
 		text = NULL;
 		diagnostics(5, "getBracketParam []");
 	}
-	
+	if(text == NULL){
+        text = (char*)malloc(sizeof(char));
+        text[0] = '\0';
+    }
 	return text;
 }
 
@@ -431,6 +434,10 @@ char* Parser::getBraceParam(void)
 	}
 		
 //	PopTrackLineNumber();
+    if(text == NULL){
+        text = (char*)malloc(sizeof(char));
+        text[0] = '\0';
+    }
 	diagnostics(5, "Leaving getBraceParam {%s}", text);
 	return text;
 }
