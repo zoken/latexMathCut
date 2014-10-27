@@ -97,7 +97,7 @@ void Parser::setIndex(int index){
 char* Parser::getChars(int beg,int end){
     char space[1] ;
     space[0] = '\0';
-	if(beg<0||beg>=end)
+	if(beg<0||beg>=end||beg>this->sentencelen)
 		return space;
     if(end > this->sentencelen)
         end = this->sentencelen ;
@@ -128,8 +128,7 @@ char Parser::getRawTexChar()
 {
 	char	thechar;
 	if(readIndex >= sentencelen){
-//        readIndex++;
-        readIndex = sentencelen ;
+        readIndex++;
 		return '\0';
 	}else{
 		thechar = sentence[readIndex++];
