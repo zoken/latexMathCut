@@ -259,6 +259,7 @@ parameter: type of operand
 {
 	char           *upper_limit = NULL;
 	char           *lower_limit = NULL;
+    char           *eq = NULL ;
 	char            cThis;
 
 	/* is there an exponent/subscript ? */
@@ -280,7 +281,24 @@ parameter: type of operand
 		else
 			parser->ungetTexChar();
 	}
-	return strdup_together(lower_limit,upper_limit);;
+    if(lower_limit || upper_limit){
+        cThis = parser->getNonBlank();
+        if(cThis == '{'){
+            parser->ungetTexChar();
+            eq = parser->getBraceParam();
+        }else{
+            parser->ungetTexChar();
+        }
+    }
+//	return strdup_together(lower_limit,upper_limit);;
+    if(lower_limit!=NULL){
+        free(lower_limit);
+        lower_limit = NULL ;
+    }else if(upper_limit!=NULL){
+        free(upper_limit);
+        upper_limit = NULL ;
+    }
+    return eq ;
 }
 
 char* Equation::CmdSuperscript(int code)
