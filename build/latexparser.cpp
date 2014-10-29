@@ -106,6 +106,16 @@ char* Parser::getChars(int beg,int end){
 	ret[end-beg]='\0';
 	return ret ;
 }
+char* Parser::getMathWord(){
+    int start = readIndex ; 
+    char c ;
+    do{
+        c = getTexChar();
+    }while((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
+        (c>='0'&&c<='9'));
+    ungetTexChar();
+    return getChars(start,readIndex);
+}
 void Parser::setSentence(const char* _sentence){
 	if(_sentence == 0){
 		this->readIndex = 0 ; 
@@ -256,7 +266,7 @@ char* Parser::getDelimitedText(char left, char right, bool raw)
 			lefts_needed--;
         size++ ;
 	}
-	buffer[size] = '\0';		/* overwrite final delimeter */
+	buffer[lefts_needed == 0 ? size -1 : size] = '\0';		/* overwrite final delimeter */
 	if (size == 4999)
 		diagnostics(ERROR, "Misplaced '%c' (Not found within 5000 chars)");
 		

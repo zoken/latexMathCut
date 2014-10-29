@@ -19,6 +19,8 @@ private:
 		int sentencelen ;
 public:
     char* getCmd();
+    char* getMathWord();
+
 	int getIndex();
 	void setIndex(int index);
 	char* getChars(int beg,int end);
