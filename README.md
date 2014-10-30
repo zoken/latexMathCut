@@ -15,8 +15,10 @@ LATEX WORD CUT
     5. other testinputs : ~/jy.test(PRIVATE)
 
 ###USAGE
-    1. import libWordCut.so & mathwordtools.h
-    2. use like test.cpp and sample.cpp
+    1. cd build
+    2. make (to create libWordCut.so)
+    3. import libWordCut.so & mathwordtools.h
+    4. use like test.cpp and sample.cpp
         MathWordTool mwt ;
         list<char*> resultlist ;
         const char* sentence = "[中文|英文|exp]+";
