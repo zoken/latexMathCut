@@ -3,7 +3,16 @@
 #include <fstream>
 
 int main(int argc, char* argv[]){
-    char buf[4096];   
+    #if CHINESE_USE == 2
+        //INIT DIFFERENT CHINESE.
+        //TCSeg
+        const char* lpszDirPath = "";
+        if(TCInitSeg(lpszDirPath) == false){
+            std::cout << "TCInitSeg error. "<< std::endl;
+            System.exit(1);
+        }
+    #endif
+    char buf[4096];
     MathWordTool mwt ;
     std::list<char*> resultlist ;
     std::ifstream testfile(argv[1]);

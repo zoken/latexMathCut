@@ -16,7 +16,7 @@ void* thread(void* arg)
     list<char*> resultlist ;
     int num = 1;
     for (i = 0 ; i < num ;i++){
-        mwt.cut("$1+1$",&resultlist);
+        mwt.cut("$|{-\\frac{7}{9}}|÷（{\\frac{2}{3}-\\frac{1}{5}}）-\\frac{1}{3}×{（{-4}）^2}$",&resultlist);
         list<char*>::iterator iter ;
  //       for(iter = resultlist.begin();iter!=resultlist.end();iter++){
  //           cout << *iter << endl;
@@ -30,7 +30,7 @@ int main(int n,char** argv)
 {
     int i,ret ;
     //-------------------------------finished init
-    int customernum =1000 ;
+    int customernum =1000;
     pthread_t id[1000];
     for(i = 0 ; i < customernum ; i++){
         ret=pthread_create(&id[i],NULL,thread,NULL);
@@ -46,8 +46,11 @@ int main(int n,char** argv)
             return 1;
         }       
     }
+    long start = getTimeMillis();
     for(i = 0 ; i < customernum ; i++){
         pthread_join(id[i],NULL);
     }
+    long end = getTimeMillis();
+    std::cout << "join Time:" << end-start <<std::endl;
     return (0);
 }

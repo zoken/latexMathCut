@@ -4,13 +4,11 @@
 #include <iostream>
 #include "latexparser.h"
 #include "equation.h"
-#include "EQS.h"
+#include "eqs.h"
 #include "Limonp/Config.hpp"
 #include "MPSegment.hpp"
 #include "HMMSegment.hpp"
 #include "MixSegment.hpp"
-
-
 
 #define BIGOP 2
 #define MINOP 2
@@ -26,10 +24,18 @@
 using namespace std;
 void AddContent(char*,EQS**); //add data to eqs stack.
 void handleContent(char* word,EQS**,list<char*>*);//handle content which is not cmd and operaete. and add cut word into resultlist.
-void jiebaCut(char*,list<char*>*);//cut chinese word.store it into resultlist.
-
+void ChineseCut(char*,list<char*>*);//cut chinese word.store it into resultlist.
+#if CHINESE_USE == 1 
 CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
-//CppJieba::KeywordExtractor extractor("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/idf.utf8","../dict/stop_words.utf8");
+#endif
+/*****************************
+    method:handleContent.本部分用于处理数学公式不可分的部分。提取头尾中可能成为数学单词的部分，加入表达式处理的结构
+        中间部分使用中文分词ChineseCut
+    word:需要处理的单词
+    current:表达式处理的结构
+    resultlist:最终结果
+    内存增量：头、尾、中间部分（调用中文分词的话，则释放）
+****************************/
 void handleContent(char* word, EQS** current,list<char*>* resultlist){
     if(word == NULL)
         return ;
@@ -38,6 +44,7 @@ void handleContent(char* word, EQS** current,list<char*>* resultlist){
     int left = 0 ; 
     int right = strlen(word);
     int i = 0 ; 
+    //提取word头部的数学单词
     for(i = 0 ; i < right ; i++){
         if((word[i]>='a'&&word[i]<='z')||(word[i]>='A'&&word[i]<='Z')
             ||(word[i]>='0'&&word[i]<='9')){
@@ -46,6 +53,7 @@ void handleContent(char* word, EQS** current,list<char*>* resultlist){
             break ;
         }
     }
+    //提取word尾部的数学单词
     left = i ;
     for(i = right-1 ; i >= left ; i--){
         if((word[i]>='a'&&word[i]<='z')||(word[i]>='A'&&word[i]<='Z')
@@ -69,7 +77,9 @@ void handleContent(char* word, EQS** current,list<char*>* resultlist){
         tmp = (char*)malloc(sizeof(char)*(i+1-left+1));
         memcpy(tmp,word+left,i-left+1);
         tmp[i-left+1] = '\0';
-        jiebaCut(tmp,resultlist);
+        ChineseCut(tmp,resultlist);
+        free(tmp);
+        tmp = NULL ;
         tmp = (char*)malloc(sizeof(char)*(right-i));
         strcpy(tmp,word+i+1);
         AddContent(tmp,current);
@@ -91,64 +101,9 @@ bool isString(const char* sentence){
     }
     return true ;
 }
-
-void combineEquations(struct EQS *head , list<char*>* results){
-    int currentMaxOp = 0 ;
-    struct EQS *maxEquations,*current,*tofree_eq ;
-    char* tmp ;
-    if(head == NULL)
-        return ;
-    while(head->nexteq!=NULL){
-        current = head ;
-        maxEquations = head ;
-        currentMaxOp = 0;
-        while(current->nexteq!=NULL){
-            if(current->op == 0)
-                break ;
-            if(current->op > currentMaxOp){
-                currentMaxOp = current->op ;
-                maxEquations = current ;
-            }
-            current = current->nexteq ;
-        }
-        if(head == current){
-            head = current->nexteq ;
- //           free(current->content);
-            delete current;
-            continue ;
-        }
-        current = maxEquations;
-        if(current->content==NULL||current->nexteq->content==NULL){
-            head = current->nexteq; //error operate.
-            
-            continue ;
-        }
-        int currentLen = strlen(current->content);
-        int nextLen = strlen(current->nexteq->content);
-        if(current->beiyong_opname=='\0'){
-            tmp = (char*)malloc(sizeof(char)*(currentLen+nextLen+2));
-            strcpy(tmp,current->content);
-            tmp[currentLen] = current->opname ;
-            strcpy(tmp+currentLen+1,current->nexteq->content);
-        }else{
-            tmp = (char*)malloc(sizeof(char)*(currentLen+nextLen+3));
-            strcpy(tmp,current->content);
-            tmp[currentLen] = current->opname ;
-            tmp[currentLen+1] = current->beiyong_opname;
-            strcpy(tmp+currentLen+2,current->nexteq->content);
-        }
-//        free(current->content);
-//        free(current->nexteq->content);
-        current->content = tmp ;
-        current->op = current->nexteq->op ;
-        current->beiyong_opname = current->nexteq->beiyong_opname;
-        current->opname = current->nexteq->opname ;
-        tofree_eq = current->nexteq ;
-        current->nexteq = current->nexteq->nexteq; 
-        delete tofree_eq;
-        results->push_back(current->content);
-    }
-}
+/*********************************************
+*   将content加入公式表达式，待处理         **
+**********************************************/
 void AddContent(char* content, EQS** _current){
     if(content == NULL)
         return ;
@@ -157,11 +112,21 @@ void AddContent(char* content, EQS** _current){
         current->nexteq = new EQS();
         current = current->nexteq ;
     }
-    current->content = content ;
+    char* tmp;
+    if(content!=NULL){
+        tmp = (char*)malloc(sizeof(char)*(strlen(content)+1));
+        strcpy(tmp,content);
+        current->content = tmp ;
+    }
     current->op = 0 ;
     *_current = current ;
 }
-void jiebaCut(char* content, list<char*>* resultlist){
+/******************************************************
+*   中文分词函数。通过制定CHINESE_USE
+*   在编译阶段指定分词的工具。初始化操作在外部执行
+******************************************************/
+void ChineseCut(char* content, list<char*>* resultlist){
+#if CHINESE_USE == 1
     vector<string> words ;
     vector<string>::iterator it;
     char* word ;
@@ -175,7 +140,25 @@ void jiebaCut(char* content, list<char*>* resultlist){
         }
         resultlist->push_back(word);
     }
+#elif CHINESE_USE == 2
+    //TCSeg
+    int iResultMode = 0 ;
+    HANDLE handle = TCCreateSegHandle(iResultMode);
+    bool success = TCSegment(handle,content,strlen(content),TC_UTF8);
+    int resNum = 0 ,i=0;
+    if(success){
+        resNum = TCGetResultCnd(handle);
+        for(i = 0; i<resNum;i++){
+            resultlist->push_back(TCGetWordAt(handle,i));
+        }
+    }
+#endif
 }
+/****************************************************************
+*** 分词主函数。本函数执行包括两个功能：                     ***
+*** 1. 区分公式和中文，并调用不同模块                        ***
+*** 2. 对数学公式执行词法分析                                ***
+***************************************************************/
 void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     if(sentence == NULL)
         return ;
@@ -187,21 +170,11 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
 	p.setSentence(sentence);
 	Equation q ;
 	q.regParser(&p);
-    char cThis = '\n';
-    char cEnd = '\n';
-    char cNext = '\n';
-    char cNext_Next = '\0';
-    int buflastindex = 0; 
-    int bufcurrentindex = 0;
+    char cThis = '\n',cEnd = '\n', cNext = '\n', cNext_Next = '\0';
+    int buflastindex = 0, bufcurrentindex = 0;
     int op = 0 ; //must init. else op!=0 will execute with error message.
-    char * word ;
-    char* tmp ;
-    char * cmd ;
-
-    EQS *head;
-    EQS *current; 
-    vector<string> words ;
-    vector<string>::iterator it;
+    char *word , *tmp , *cmd ;
+    EQS *head,*current; 
 //    CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
     head = new EQS();
     current = head ;
@@ -290,12 +263,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 bufcurrentindex = p.getIndex();
                 currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
                 buflastindex = bufcurrentindex ;
-                if(current->content!=NULL){
-                    current->op = 0 ;
-                    current->nexteq = new EQS();
-                    current = current->nexteq ;
-                }
-                current->content = currentResult.back();
+                AddContent(currentResult.back(),&current);
                 if(param != NULL)
                     cut(param,resultlist);
                 break ;
@@ -434,11 +402,6 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 current->beiyong_opname = '=';
             else
                 p.ungetTexChar();
-            if(current->content == NULL){
-                word = (char*)malloc(sizeof(char));
-                word[0] = '\0';
-                current->content = word ;
-            }
             current->op = op ;
             current->opname = cThis ;
             current->nexteq = new EQS();
@@ -455,7 +418,8 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     }
     handleContent(p.getChars(buflastindex,bufcurrentindex),&current,resultlist);
     current->nexteq = NULL ;
-    combineEquations(head,&currentResult);
+//    combineEquations(head,&currentResult);
+    EQS::combineEquations(head,resultlist);
     list<char*>::iterator iter ;
     for(iter = currentResult.begin() ; iter != currentResult.end() ; iter++){
         resultlist->push_back(*iter);
