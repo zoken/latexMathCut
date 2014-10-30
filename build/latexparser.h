@@ -24,6 +24,7 @@ public:
 	int getIndex();
 	void setIndex(int index);
 	char* getChars(int beg,int end);
+    bool isSpecialMathWord();
 	void	setSentence(const char* sentence);
 	char	getRawTexChar(void);
 	char	getTexChar(void);

@@ -106,11 +106,26 @@ char* Parser::getChars(int beg,int end){
 	ret[end-beg]='\0';
 	return ret ;
 }
+bool Parser::isSpecialMathWord(){
+    int i = readIndex ; 
+    int j = readIndex+1;
+    int k = readIndex+2;
+    if(k > sentencelen)
+        return false;
+    if(sentence[i]=='\342'&&sentence[j]=='\200'&&sentence[k]=='\262'){
+        readIndex = readIndex+3;
+        return true; 
+    }
+    return false;
+}
 char* Parser::getMathWord(){
     int start = readIndex ; 
     char c ;
     do{
-        c = getTexChar();
+        if(isSpecialMathWord())
+            continue ;
+        else
+            c = getTexChar();
     }while((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
         (c>='0'&&c<='9'));
     ungetTexChar();

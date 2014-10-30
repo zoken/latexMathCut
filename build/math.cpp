@@ -28,7 +28,7 @@ void AddContent(char*,EQS**); //add data to eqs stack.
 void handleContent(char* word,EQS**,list<char*>*);//handle content which is not cmd and operaete. and add cut word into resultlist.
 void jiebaCut(char*,list<char*>*);//cut chinese word.store it into resultlist.
 
-CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
+CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
 //CppJieba::KeywordExtractor extractor("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/idf.utf8","../dict/stop_words.utf8");
 void handleContent(char* word, EQS** current,list<char*>* resultlist){
     if(word == NULL)
@@ -169,6 +169,10 @@ void jiebaCut(char* content, list<char*>* resultlist){
     for(it=words.begin();it!=words.end();it++){
         word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
         strcpy(word,(*it).c_str());
+        if(word[0]==' '||
+            (word[0] == '\302'&& word[1] =='\240')){//中文空格
+            continue;
+        }
         resultlist->push_back(word);
     }
 }
@@ -186,6 +190,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     char cThis = '\n';
     char cEnd = '\n';
     char cNext = '\n';
+    char cNext_Next = '\0';
     int buflastindex = 0; 
     int bufcurrentindex = 0;
     int op = 0 ; //must init. else op!=0 will execute with error message.
@@ -273,6 +278,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 }else{
                     break ;
                 }
+                /** cancel th eoperate before the main .
                 if(word!=NULL&&strlen(word)>0){//dian cheng
                     AddContent(word,&current);
                     current->op = MULOP;
@@ -280,6 +286,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     current->nexteq = new EQS();
                     current = current->nexteq;
                 }
+                */
                 bufcurrentindex = p.getIndex();
                 currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
                 buflastindex = bufcurrentindex ;
@@ -308,10 +315,10 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 cNext = p.getTexChar();
                 if(cNext == '\274'){
                     cNext = p.getTexChar();
-                    if(cNext == '\210'){
+                    if(cNext == '\210'){//中文括号
                         cThis = '(';
                         cEnd = '?';
-                    }else if(cNext == '\214'){//chinese ','
+                    }else if(cNext == '\214'){//中文逗号
                         if(bufcurrentindex > (buflastindex+1)){
                             word = p.getChars(buflastindex, bufcurrentindex-1);
                             handleContent(word,&current,resultlist);
@@ -345,29 +352,38 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 break;
             case '\303':
                 cNext = p.getTexChar();
-                if(cNext=='\227'){ //Multiplication '\303'+'\227'
+                if(cNext=='\227'){//中文乘号
                     cThis = '*';
                     op = MULOP ;
-                }else if(cNext=='\267'){ //Division '\303'+'\267'
+                }else if(cNext=='\267'){ //中文除号
                     cThis = '/';
                     op = DIVOP ;
                 }else{
                     p.ungetTexChar();
                 }
                 break;
-            case '\342': //dian cheng
+            case '\342': 
                 cNext = p.getTexChar();
-                if(cNext != '\200')
+                cNext_Next = p.getTexChar();
+                //角度和三角形
+                if((cNext == '\226'&&cNext_Next == '\263')||(cNext == '\210'&&cNext_Next=='\240')){
+                    bufcurrentindex = p.getIndex();
+                    word = p.getChars(buflastindex,bufcurrentindex-3);
+                    handleContent(word,&current,resultlist);
+                    buflastindex = bufcurrentindex -3 ;
+                    p.getMathWord();
+                    bufcurrentindex = p.getIndex();
+                    word = p.getChars(buflastindex,bufcurrentindex);
+                    AddContent(word,&current);
+                    currentResult.push_back(word);
+                    buflastindex= bufcurrentindex;
+                }else if(cNext == '\200'&&cNext_Next =='\242'){
+                    //点乘
+                    cThis = '*';
+                    op = MULOP;
+                 }else{
                     p.ungetTexChar();
-                else{
-                    cNext = p.getTexChar();
-                    if(cNext == '\242'){
-                        cThis = '*';
-                        op = MULOP;
-                    }else{
-                        p.ungetTexChar();
-                        p.ungetTexChar();
-                    }
+                    p.ungetTexChar();
                  }
                  break;
             case '>':
