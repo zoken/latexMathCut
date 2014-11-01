@@ -4,7 +4,6 @@
 #include <iostream>
 #include "latexparser.h"
 #include "equation.h"
-#include "eqs.h"
 #include "Limonp/Config.hpp"
 #include "MPSegment.hpp"
 #include "HMMSegment.hpp"
@@ -22,21 +21,15 @@
 #define FLATOP 5
 
 using namespace std;
-void AddContent(char*,EQS**); //add data to eqs stack.
-void handleContent(char* word,EQS**,list<char*>*);//handle content which is not cmd and operaete. and add cut word into resultlist.
-void ChineseCut(char*,list<char*>*);//cut chinese word.store it into resultlist.
-#if CHINESE_USE == 1 
-CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
-#endif
 /*****************************
     method:handleContent.本部分用于处理数学公式不可分的部分。提取头尾中可能成为数学单词的部分，加入表达式处理的结构
-        中间部分使用中文分词ChineseCut
+        中间部分使用中文分词chineseCut
     word:需要处理的单词
     current:表达式处理的结构
     resultlist:最终结果
     内存增量：头、尾、中间部分（调用中文分词的话，则释放）
 ****************************/
-void handleContent(char* word, EQS** current,list<char*>* resultlist){
+void MathWordTool::handleContent(char* word, EQS** current,list<char*>* resultlist){
     if(word == NULL)
         return ;
     else if(strlen(word)<=0)
@@ -65,24 +58,24 @@ void handleContent(char* word, EQS** current,list<char*>* resultlist){
     char* tmp ; 
     if(i < left){
         //i == 0; // left == right
-        AddContent(word,current);
+        EQS::AddContent(word,current);
         resultlist->push_back(word);
     }else{
         tmp = (char*)malloc(sizeof(char)*(left+1));
         memcpy(tmp,word,left);
         tmp[left] = '\0';
-        AddContent(tmp,current);
+        EQS::AddContent(tmp,current);
         if(left > 0 )
             resultlist->push_back(tmp);
         tmp = (char*)malloc(sizeof(char)*(i+1-left+1));
         memcpy(tmp,word+left,i-left+1);
         tmp[i-left+1] = '\0';
-        ChineseCut(tmp,resultlist);
+        this->chineseCut(tmp,resultlist);
         free(tmp);
         tmp = NULL ;
         tmp = (char*)malloc(sizeof(char)*(right-i));
         strcpy(tmp,word+i+1);
-        AddContent(tmp,current);
+        EQS::AddContent(tmp,current);
         if(i < (right-1))
             resultlist->push_back(tmp);
     }
@@ -101,58 +94,24 @@ bool isString(const char* sentence){
     }
     return true ;
 }
-/*********************************************
-*   将content加入公式表达式，待处理         **
-**********************************************/
-void AddContent(char* content, EQS** _current){
-    if(content == NULL)
-        return ;
-    EQS* current = *_current ;
-    if(current->content!=NULL){
-        current->nexteq = new EQS();
-        current = current->nexteq ;
-    }
-    char* tmp;
-    if(content!=NULL){
-        tmp = (char*)malloc(sizeof(char)*(strlen(content)+1));
-        strcpy(tmp,content);
-        current->content = tmp ;
-    }
-    current->op = 0 ;
-    *_current = current ;
-}
 /******************************************************
 *   中文分词函数。通过制定CHINESE_USE
 *   在编译阶段指定分词的工具。初始化操作在外部执行
 ******************************************************/
-void ChineseCut(char* content, list<char*>* resultlist){
-#if CHINESE_USE == 1
+void MathWordTool::chineseCut(const char* content, list<char*>* resultlist){
+    if(_segment == NULL)
+        return ;
+
     vector<string> words ;
     vector<string>::iterator it;
     char* word ;
-    _segment.cut(content,words);
+    _segment->cut(content,words);
     for(it=words.begin();it!=words.end();it++){
         word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
-        strcpy(word,(*it).c_str());
-        if(word[0]==' '||
-            (word[0] == '\302'&& word[1] =='\240')){//中文空格
-            continue;
-        }
+        strcpy(word,((*it).c_str()));
         resultlist->push_back(word);
     }
-#elif CHINESE_USE == 2
-    //TCSeg
-    int iResultMode = 0 ;
-    HANDLE handle = TCCreateSegHandle(iResultMode);
-    bool success = TCSegment(handle,content,strlen(content),TC_UTF8);
-    int resNum = 0 ,i=0;
-    if(success){
-        resNum = TCGetResultCnd(handle);
-        for(i = 0; i<resNum;i++){
-            resultlist->push_back(TCGetWordAt(handle,i));
-        }
-    }
-#endif
+    words.clear();
 }
 /****************************************************************
 *** 分词主函数。本函数执行包括两个功能：                     ***
@@ -200,7 +159,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 }
                 //get the end index of '$' sentence ;
                 bufcurrentindex = p.getIndex();
-                AddContent(p.getChars(buflastindex,bufcurrentindex),&current); //reg '$' sentence to current level's content ; to be used as operate content.
+                EQS::AddContent(p.getChars(buflastindex,bufcurrentindex),&current); //reg '$' sentence to current level's content ; to be used as operate content.
                 buflastindex = bufcurrentindex;// index begin index to next start.
                 cut(word,resultlist);// cut the '$' sentence into small pieces.
                 break;
@@ -253,7 +212,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 }
                 /** cancel th eoperate before the main .
                 if(word!=NULL&&strlen(word)>0){//dian cheng
-                    AddContent(word,&current);
+                    EQS::AddContent(word,&current);
                     current->op = MULOP;
                     current->opname = ' ';
                     current->nexteq = new EQS();
@@ -263,7 +222,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 bufcurrentindex = p.getIndex();
                 currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
                 buflastindex = bufcurrentindex ;
-                AddContent(currentResult.back(),&current);
+                EQS::AddContent(currentResult.back(),&current);
                 if(param != NULL)
                     cut(param,resultlist);
                 break ;
@@ -342,7 +301,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     p.getMathWord();
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex);
-                    AddContent(word,&current);
+                    EQS::AddContent(word,&current);
                     currentResult.push_back(word);
                     buflastindex= bufcurrentindex;
                 }else if(cNext == '\200'&&cNext_Next =='\242'){
@@ -387,7 +346,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             bufcurrentindex = p.getIndex();
             currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
             buflastindex = p.getIndex() ;
-            AddContent(currentResult.back(),&current);
+            EQS::AddContent(currentResult.back(),&current);
             cut(word,resultlist);
             cEnd = '\n';//handle '{}' and so on.
             buflastindex = p.getIndex();
