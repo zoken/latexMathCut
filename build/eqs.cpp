@@ -62,3 +62,23 @@ void EQS::combineEquations(EQS* head,std::list<char*>* resultlist){
         resultlist->push_back(tmp);//这个tmp是不能删除的，所以重新创建了
     }
 }
+/*********************************************
+*   将content加入公式表达式，待处理         **
+**********************************************/
+void EQS::AddContent(char* content, EQS** _current){
+    if(content == NULL)
+        return ;
+    EQS* current = *_current ;
+    if(current->content!=NULL){
+        current->nexteq = new EQS();
+        current = current->nexteq ;
+    }
+    char* tmp;
+    if(content!=NULL){
+        tmp = (char*)malloc(sizeof(char)*(strlen(content)+1));
+        strcpy(tmp,content);
+        current->content = tmp ;
+    }
+    current->op = 0 ;
+    *_current = current ;
+}

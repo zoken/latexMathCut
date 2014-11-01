@@ -456,8 +456,9 @@ char* Equation::CmdBeginEnd(int code){
                 CmdBeginEnd(code);
             }else if(strcmp(cmd,stop)==0){
                 endindex = parser->getIndex()-4;//\end
-                while((c=parser->getTexChar())!='{');
-                parser->getDelimitedText('{','}',false);
+//                while((c=parser->getTexChar())!='{'){
+//                }
+//                parser->getDelimitedText('{','}',false);
                 break;
             }
         }
