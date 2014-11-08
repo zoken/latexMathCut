@@ -8,6 +8,7 @@
 #include "MPSegment.hpp"
 #include "HMMSegment.hpp"
 #include "MixSegment.hpp"
+#include "FullSegment.hpp"
 
 #define BIGOP 2
 #define MINOP 2

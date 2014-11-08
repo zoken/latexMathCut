@@ -15,7 +15,8 @@ int main(int argc, char* argv[]){
         }
     #endif
     char buf[40960];
-    Jieba_Cut jiebacut("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
+//    Jieba_Cut jiebacut("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
+    Jieba_Cut jiebacut("../dict/extra_dict/jieba.dict.small.utf8");
     MathWordTool mwt ;
     mwt.regChineseCutTool(&jiebacut);
     int count = 0 ;
