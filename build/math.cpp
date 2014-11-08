@@ -80,6 +80,49 @@ void MathWordTool::handleContent(char* word, EQS** current,list<char*>* resultli
             resultlist->push_back(tmp);
     }
 }
+/**************************************
+获取某些词在句子中的位置,返回wordpos
+**************************************/
+void MathWordTool::findWordPoses(char* sentence , list<char*>& words , vector<WordPos*>& result){
+    list<char*>::iterator iter,count_iter;
+    list<int> starts ;
+    list<int> ends ;
+    int i,timeCount ,tmppos;
+    int len = strlen(sentence);
+    char* tmp_sentence ;
+    WordPos* tmpwordpos = NULL ;
+    for(iter = words.begin(); iter!=words.end();iter++){
+        //查找*iter已出现的次数
+        timeCount = 0 ;
+        for(count_iter = words.begin() ; count_iter!=iter ;count_iter++){
+            if(strcmp(*iter,*count_iter)==0){
+                timeCount++;
+            }
+        }
+        tmp_sentence = sentence ;
+        for( i = 0 ; i < timeCount ; i++){
+            tmp_sentence = strstr(tmp_sentence , *iter);
+            if(tmp_sentence == NULL){
+                break ;
+            }
+            tmp_sentence++;//指向下一段字符串，以便寻找下一个出现的单词
+        }
+        if(tmp_sentence ==NULL)
+            continue ;
+        else{
+            tmp_sentence = strstr(tmp_sentence , *iter);
+            if(tmp_sentence == NULL)
+                tmppos = -1;
+            else{
+                tmppos = len - strlen(tmp_sentence);
+            }
+            tmpwordpos = new  WordPos();
+            tmpwordpos->word = *iter ;
+            tmpwordpos->pos = tmppos ;
+            result.push_back(tmpwordpos);
+        }
+    }
+}
 bool isString(const char* sentence){
     int len,i;
     len = strlen(sentence);
@@ -101,8 +144,8 @@ bool isString(const char* sentence){
 void MathWordTool::chineseCut(const char* content, list<char*>* resultlist){
     if(_segment == NULL)
         return ;
-
     vector<string> words ;
+    list<char*> tmpwords ;
     vector<string>::iterator it;
     char* word ;
     _segment->cut(content,words);
@@ -110,8 +153,21 @@ void MathWordTool::chineseCut(const char* content, list<char*>* resultlist){
         word = (char*)malloc(sizeof(char)*(strlen((*it).c_str())+1));
         strcpy(word,((*it).c_str()));
         resultlist->push_back(word);
+        tmpwords.push_back(word);
     }
     words.clear();
+    vector<WordPos*> rv ;
+    char* tmp_sentence = (char*)malloc(sizeof(char)*(strlen(content)+1));
+    strcpy(tmp_sentence,content);
+    findWordPoses(tmp_sentence , tmpwords , rv);
+    free(tmp_sentence);
+    tmp_sentence = NULL ;
+    vector<WordPos*>::iterator _positer ;
+    cout << "**********************************************" << endl;
+    for(_positer= rv.begin();_positer!=rv.end();_positer++){
+        cout << (*_positer)->word << " " << (*_positer)->pos << endl;
+    }
+
 }
 /****************************************************************
 *** 分词主函数。本函数执行包括两个功能：                     ***
@@ -134,7 +190,6 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     int op = 0 ; //must init. else op!=0 will execute with error message.
     char *word , *tmp , *cmd ;
     EQS *head,*current; 
-//    CppJieba::MixSegment _segment("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","./");
     head = new EQS();
     current = head ;
     list<char*> currentResult;
@@ -289,11 +344,14 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     p.ungetTexChar();
                 }
                 break;
+            //公式中的三角形和角度应该是两种不同的操作，一种是向后合并，一种是向前合并
+            //角度不做处理，只处理三角形
             case '\342': 
                 cNext = p.getTexChar();
                 cNext_Next = p.getTexChar();
                 //角度和三角形
-                if((cNext == '\226'&&cNext_Next == '\263')||(cNext == '\210'&&cNext_Next=='\240')){
+                //角度为\342,\210,\240
+                if((cNext == '\226'&&cNext_Next == '\263')){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-3);
                     handleContent(word,&current,resultlist);
