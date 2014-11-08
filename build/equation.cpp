@@ -432,7 +432,8 @@ char* Equation::CmdKuoHao(char start,char end){
             }
         }
     }
-    return parser->getChars(begin,parser->getIndex()-1);
+    parser->setIndex(begin);
+    return parser->getChars(begin,begin);
 }
 
 char* Equation::CmdBeginEnd(int code){

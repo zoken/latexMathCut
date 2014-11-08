@@ -30,7 +30,7 @@ using namespace std;
     resultlist:最终结果
     内存增量：头、尾、中间部分（调用中文分词的话，则释放）
 ****************************/
-void MathWordTool::handleContent(char* word, EQS** current,list<char*>* resultlist){
+void MathSegmentTool::handleContent(char* word, EQS** current,list<char*>* resultlist , vector<WordPos*>& results){
     if(word == NULL)
         return ;
     else if(strlen(word)<=0)
@@ -71,7 +71,7 @@ void MathWordTool::handleContent(char* word, EQS** current,list<char*>* resultli
         tmp = (char*)malloc(sizeof(char)*(i+1-left+1));
         memcpy(tmp,word+left,i-left+1);
         tmp[i-left+1] = '\0';
-        this->chineseCut(tmp,resultlist);
+        chineseCut(tmp,resultlist,results);
         free(tmp);
         tmp = NULL ;
         tmp = (char*)malloc(sizeof(char)*(right-i));
@@ -84,7 +84,7 @@ void MathWordTool::handleContent(char* word, EQS** current,list<char*>* resultli
 /**************************************
 获取某些词在句子中的位置,返回wordpos
 **************************************/
-void MathWordTool::findWordPoses(char* sentence , list<char*>& words , vector<WordPos*>& result){
+void MathSegmentTool::findWordPoses(char* sentence , list<char*>& words , vector<WordPos*>& result){
     list<char*>::iterator iter,count_iter;
     list<int> starts ;
     list<int> ends ;
@@ -142,7 +142,7 @@ bool isString(const char* sentence){
 *   中文分词函数。通过制定CHINESE_USE
 *   在编译阶段指定分词的工具。初始化操作在外部执行
 ******************************************************/
-void MathWordTool::chineseCut(const char* content, list<char*>* resultlist){
+void MathSegmentTool::chineseCut(const char* content, list<char*>* resultlist , vector<WordPos*>& results){
     if(_segment == NULL)
         return ;
     vector<string> words ;
@@ -157,25 +157,19 @@ void MathWordTool::chineseCut(const char* content, list<char*>* resultlist){
         tmpwords.push_back(word);
     }
     words.clear();
-    vector<WordPos*> rv ;
     char* tmp_sentence = (char*)malloc(sizeof(char)*(strlen(content)+1));
     strcpy(tmp_sentence,content);
-    findWordPoses(tmp_sentence , tmpwords , rv);
+    findWordPoses(tmp_sentence , tmpwords , results);
     free(tmp_sentence);
     tmp_sentence = NULL ;
     vector<WordPos*>::iterator _positer ;
-    cout << "**********************************************" << endl;
-    for(_positer= rv.begin();_positer!=rv.end();_positer++){
-        cout << (*_positer)->word << " " << (*_positer)->pos << endl;
-    }
-
 }
 /****************************************************************
 *** 分词主函数。本函数执行包括两个功能：                     ***
 *** 1. 区分公式和中文，并调用不同模块                        ***
 *** 2. 对数学公式执行词法分析                                ***
 ***************************************************************/
-void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
+void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , list<char*>* resultlist ){
     if(sentence == NULL)
         return ;
     else if(strlen(sentence)<=0)
@@ -203,7 +197,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 if(bufcurrentindex > (buflastindex+1)){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
-                    handleContent(word,&current,resultlist);
+                    handleContent(word,&current,resultlist,results);
                 }
                 buflastindex = bufcurrentindex-1;//index buflastindex to the begin of '$' sentence
                 cNext = p.getTexChar();
@@ -217,7 +211,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 bufcurrentindex = p.getIndex();
                 EQS::AddContent(p.getChars(buflastindex,bufcurrentindex),&current); //reg '$' sentence to current level's content ; to be used as operate content.
                 buflastindex = bufcurrentindex;// index begin index to next start.
-                cut(word,resultlist);// cut the '$' sentence into small pieces.
+                cut(word,results,resultlist);// cut the '$' sentence into small pieces.
                 break;
             case '\\':
                 // handle the content before cmd.
@@ -225,7 +219,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 if(bufcurrentindex > buflastindex+1){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-1);
-                    handleContent(word,&current,resultlist);
+                    handleContent(word,&current,resultlist,results);
                 }
                 //move index to '\' as the head of cmd sentence.
                 buflastindex = bufcurrentindex -1; 
@@ -280,7 +274,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 buflastindex = bufcurrentindex ;
                 EQS::AddContent(currentResult.back(),&current);
                 if(param != NULL)
-                    cut(param,resultlist);
+                    cut(param,results,resultlist);
                 break ;
             case '{':
                 cEnd = '}';
@@ -304,7 +298,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                     }else if(cNext == '\214'){//中文逗号
                         if(bufcurrentindex > (buflastindex+1)){
                             word = p.getChars(buflastindex, bufcurrentindex-1);
-                            handleContent(word,&current,resultlist);
+                            handleContent(word,&current,resultlist,results);
                             buflastindex = p.getIndex();
                         }
                     }else{
@@ -355,7 +349,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
                 if((cNext == '\226'&&cNext_Next == '\263')){
                     bufcurrentindex = p.getIndex();
                     word = p.getChars(buflastindex,bufcurrentindex-3);
-                    handleContent(word,&current,resultlist);
+                    handleContent(word,&current,resultlist,results);
                     buflastindex = bufcurrentindex -3 ;
                     p.getMathWord();
                     bufcurrentindex = p.getIndex();
@@ -385,7 +379,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             case '.':
                 if(bufcurrentindex > (buflastindex+1)){
                     word = p.getChars(buflastindex, bufcurrentindex-1);
-                    handleContent(word,&current,resultlist);
+                    handleContent(word,&current,resultlist,results);
                     buflastindex = p.getIndex();
                 }
                 break;                
@@ -395,7 +389,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
         if(cEnd!='\n'){
             if(bufcurrentindex > (buflastindex+1)){
                 word = p.getChars(buflastindex, bufcurrentindex-1);
-                handleContent(word,&current,resultlist);
+                handleContent(word,&current,resultlist,results);
             }
             if(cThis == '(' && cEnd == '?' )
                 buflastindex = p.getIndex()-3;
@@ -406,14 +400,14 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
             currentResult.push_back(p.getChars(buflastindex,bufcurrentindex));
             buflastindex = p.getIndex() ;
             EQS::AddContent(currentResult.back(),&current);
-            cut(word,resultlist);
+            cut(word,results,resultlist);
             cEnd = '\n';//handle '{}' and so on.
             buflastindex = p.getIndex();
         }
         if(op!=0){ 
             if(bufcurrentindex > (buflastindex+1)){
                  tmp = p.getChars(buflastindex, bufcurrentindex-1);
-                 handleContent(tmp,&current,resultlist);
+                 handleContent(tmp,&current,resultlist,results);
             } 
             cNext = p.getTexChar();
             if(cNext == '=')
@@ -434,7 +428,7 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
         current->nexteq = new EQS();
         current = current->nexteq ;
     }
-    handleContent(p.getChars(buflastindex,bufcurrentindex),&current,resultlist);
+    handleContent(p.getChars(buflastindex,bufcurrentindex),&current,resultlist,results);
     current->nexteq = NULL ;
 //    combineEquations(head,&currentResult);
     EQS::combineEquations(head,resultlist);
@@ -442,4 +436,9 @@ void MathWordTool::cut(const char* sentence, list<char*>* resultlist){
     for(iter = currentResult.begin() ; iter != currentResult.end() ; iter++){
         resultlist->push_back(*iter);
     }
+    word = (char*)malloc(sizeof(char)*(strlen(sentence)+1));
+    strcpy(word,sentence);
+    findWordPoses(word, currentResult ,results);
+    free(word);
+    word = NULL ;
 }

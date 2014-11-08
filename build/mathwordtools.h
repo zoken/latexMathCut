@@ -8,16 +8,15 @@
 #define JIEBA_CUT 1
 #define TC_CUT 2
 
-class MathWordTool{
+class MathSegmentTool{
     private:
         ChineseCut *_segment ;
-        void handleContent(char*,EQS**,std::list<char*>*);
-        void findWordPoses(char* sentence ,std::list<char*>& words ,std::vector<WordPos*>& result);
+        void handleContent(char*,EQS**,std::list<char*>* ,std::vector<WordPos*>& results);
     public:
-        void cut(const char* sentence,std::list<char*>* result);
-        void cut(const char* sentence, std::vector<WordPos*>& result);
+        void findWordPoses(char* sentence ,std::list<char*>& words ,std::vector<WordPos*>& results);
+        void cut(const char* sentence,std::vector<WordPos*>& results,std::list<char*>* result);
         void regChineseCutTool(ChineseCut* chinesecut){
             _segment = chinesecut;
         }
-        void chineseCut(const char* word,std::list<char*>* resultlist);
+        void chineseCut(const char* word,std::list<char*>* resultlist,std::vector<WordPos*>& results);
 };
