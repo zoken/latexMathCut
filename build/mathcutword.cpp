@@ -114,7 +114,6 @@ void MathSegmentTool::handleContent(char* word, EQS** current, int start_index ,
         memcpy(childword, word+left_end , right_start-left_end);
         childword[right_start - left_end] = '\0';
         start_index = start_index + left_end ;
-        std::cout << "start_index:"<< start_index << std::endl;
         cutChineseWord(childword, start_index , results);
         free(childword);
     }

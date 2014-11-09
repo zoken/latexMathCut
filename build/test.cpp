@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
             resultlist.clear();
             results.clear();
             mwt.cut(buf,results);
-//            if(count%10000==0){
+            if(count%10000==0){
 //                for(iter=resultlist.begin();iter!=resultlist.end();iter++){
 //                    std::cout << *iter << std::endl;
 //                }
@@ -43,11 +43,11 @@ int main(int argc, char* argv[]){
                     std::cout <<(*_positer)->word << " "<< (*_positer)->pos <<std::endl;
                 }
  //               std::cout << count << std::endl;
-//                std::cout << "---------------------" << std::endl;
- //               std::cout << strlen(buf) << ":" << buf << std::endl;
-                
-         //       sleep(1);
-//            }
+                std::cout << "---------------------" << std::endl;
+                std::cout << strlen(buf) << ":" << buf << std::endl;
+            
+            sleep(1);
+            }
         }
         testfile.close();
     }
