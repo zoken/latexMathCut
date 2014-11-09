@@ -1,4 +1,4 @@
-#include "mathwordtools.h"
+#include "mathinterface.h"
 #include <iostream>
 #include <fstream>
 #include <time.h>
@@ -33,13 +33,12 @@ int main(int argc, char* argv[]){
             count++;
             testfile.getline(buf,40960);
             resultlist.clear();
-            mwt.cut(buf,results , &resultlist);
+            results.clear();
+            mwt.cut(buf,results);
 //            if(count%10000==0){
 //                for(iter=resultlist.begin();iter!=resultlist.end();iter++){
 //                    std::cout << *iter << std::endl;
 //                }
-            results.clear();
-            mwt.findWordPoses(buf,resultlist,results);
                 for(_positer = results.begin(); _positer != results.end() ;_positer++){
                     std::cout <<(*_positer)->word << " "<< (*_positer)->pos <<std::endl;
                 }
@@ -47,7 +46,7 @@ int main(int argc, char* argv[]){
 //                std::cout << "---------------------" << std::endl;
  //               std::cout << strlen(buf) << ":" << buf << std::endl;
                 
-                sleep(1);
+         //       sleep(1);
 //            }
         }
         testfile.close();

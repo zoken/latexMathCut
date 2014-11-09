@@ -82,3 +82,7 @@ void EQS::AddContent(char* content, EQS** _current){
     current->op = 0 ;
     *_current = current ;
 }
+void EQS::AddContent(char* content , int pos , EQS** _current){
+    AddContent(content , _current);
+    (*_current)->pos = pos ;
+}

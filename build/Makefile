@@ -1,6 +1,6 @@
-OBJECTS= tools.o util.o latexparser.o equation.o math.o eqs.o chineseCut.o
+OBJECTS= tools.o util.o latexparser.o equation.o mathcutword.o eqs.o chineseCut.o
 
-INCLUDES=tools.h util.h latexparser.h equation.h mathwordtools.h eqs.h chineseCut.h
+INCLUDES=tools.h util.h latexparser.h equation.h mathwordtools.h eqs.h chineseCut.h mathinterface.h
 
 RAOPT=
 

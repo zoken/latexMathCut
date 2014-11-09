@@ -426,7 +426,7 @@ char* Equation::CmdKuoHao(char start,char end){
             if(cThis == end){
                 need--;
                 if(need <= 0 )
-                    break;
+                    return parser->getChars(begin,parser->getIndex()-1);
             }else if(cThis == start){
                 need++;
             }

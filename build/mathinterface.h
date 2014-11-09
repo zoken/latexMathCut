@@ -1,6 +1,9 @@
 #include "stdlib.h"
 #include <vector>
 #include "eqs.h"
+#include "MixSegment.hpp"
+#include "FullSegment.hpp"
+
 #define CHINESE_USE 1
 #define JIEBA_CUT 1
 #define TC_CUT 2
@@ -16,7 +19,7 @@ class ChineseCut{
     public:
         ChineseCut(){}
         virtual ~ChineseCut(){}
-        virtual void cut(const char* word,std::vector<std::string>& words){};
+        virtual void cut(const char* word,std::vector<char*>& words){};
 };
 class Jieba_Cut : public ChineseCut{
     private:
@@ -30,11 +33,14 @@ class Jieba_Cut : public ChineseCut{
             _fullsegment = new CppJieba::FullSegment(dict_path);
         }
         virtual ~Jieba_Cut(){}
-        virtual void cut(const char* word,std::vector<std::string>& words);
+        virtual void cut(const char* word,std::vector<char*>& words);
 };
 class MathSegmentTool{
     private:
         ChineseCut *_segment ;
+        void handleContent(char*, EQS**, int, std::vector<WordPos*>&);
+        void cutChineseWord(char*, int, std::vector<WordPos*>&);
+        void cut(const char* sentence, std::vector<WordPos*>& results, int index);
     public:
         void cut(const char* sentence, std::vector<WordPos*>& result);
         void regChineseCutTool(ChineseCut* chinesecut){

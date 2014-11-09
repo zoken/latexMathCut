@@ -14,8 +14,10 @@ class EQS{
         int op ;
         char opname ;
         char beiyong_opname ;
+        int pos ;
         EQS *nexteq ;
         //静态函数，用于处理表达式
         static void combineEquations(EQS* head,std::list<char*>* resultlist);
         static void AddContent(char* word,EQS** _current);
+        static void AddContent(char* word , int pos , EQS** _current);
 };
