@@ -266,6 +266,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
     char cThis = '\n',cEnd = '\n', cNext = '\n', cNext_Next = '\0';
     int buflastindex = 0, bufcurrentindex = 0;
     int op = 0 ; //must init. else op!=0 will execute with error message.
+    int tmp_index = 0 ;
     char *word , *tmp , *cmd ;
     EQS *head,*current; 
     head = new EQS();
@@ -292,7 +293,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 //get the end index of '$' sentence ;
                 bufcurrentindex = p.getIndex();
                 EQS::AddContent(p.getChars(buflastindex,bufcurrentindex),buflastindex+index , &current); //reg '$' sentence to current level's content ; to be used as operate content.
-                cut(word,results,buflastindex+index);// cut the '$' sentence into small pieces.
+                cut(word,results,buflastindex+index+(cNext=='$'?1:0));// cut the '$' sentence into small pieces.
                 buflastindex = bufcurrentindex ;
                 break;
             case '\\':
@@ -476,11 +477,12 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 buflastindex = p.getIndex()-3;
             else
                 buflastindex = p.getIndex()-1;
+            tmp_index = p.getIndex(); 
             word = q.CmdKuoHao(cThis,cEnd);
             bufcurrentindex = p.getIndex();
             tmp_wordpos = new WordPos();
             tmp_wordpos->word = p.getChars(buflastindex,bufcurrentindex);
-            tmp_wordpos->pos = buflastindex+index ;
+            tmp_wordpos->pos = tmp_index+index ;
             results.push_back(tmp_wordpos);
             EQS::AddContent(tmp_wordpos->word,tmp_wordpos->pos,&current);
             cut(word,results,tmp_wordpos->pos);
@@ -505,9 +507,6 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
             op = 0 ;
         }
     }
-    //没有数学数据需要处理
-    if(buflastindex<=0)
-        return ;
     //zhe bufen shifang caozuo zenme zuo 
     if(buflastindex < bufcurrentindex)
         handleContent(p.getChars(buflastindex,bufcurrentindex),&current,buflastindex+index, results);
