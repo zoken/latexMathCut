@@ -4,11 +4,6 @@
 #include <iostream>
 #include "latexparser.h"
 #include "equation.h"
-#include "Limonp/Config.hpp"
-#include "MPSegment.hpp"
-#include "HMMSegment.hpp"
-#include "MixSegment.hpp"
-#include "FullSegment.hpp"
 
 #define BIGOP 2
 #define MINOP 2
@@ -40,7 +35,9 @@ int isMathWord(const char* sentence , int start_index , int sentencelen ){
                 return i+3 ;
             else 
                 return i;
-        }else{
+        } else if (sentence[i] == '\\' || sentence[i] == '$'){
+            return i+1;
+        } else{
             return i;
         }
     }
@@ -285,15 +282,17 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 buflastindex = bufcurrentindex-1;//index buflastindex to the begin of '$' sentence
                 cNext = p.getTexChar();
                 if (cNext == '$'){
+                    tmp_index = p.getIndex();
                     word = q.CmdEquation(EQN_DOLLAR_DOLLAR | ON);
                 }else {
                     p.ungetTexChar();
+                    tmp_index = p.getIndex();
                     word = q.CmdEquation(EQN_DOLLAR | ON);
                 }
                 //get the end index of '$' sentence ;
                 bufcurrentindex = p.getIndex();
                 EQS::AddContent(p.getChars(buflastindex,bufcurrentindex),buflastindex+index , &current); //reg '$' sentence to current level's content ; to be used as operate content.
-                cut(word,results,buflastindex+index+(cNext=='$'?1:0));// cut the '$' sentence into small pieces.
+                cut(word,results,index+tmp_index);// cut the '$' sentence into small pieces.
                 buflastindex = bufcurrentindex ;
                 break;
             case '\\':
@@ -352,7 +351,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 results.push_back(tmp_wordpos);
                 EQS::AddContent(tmp_wordpos->word , tmp_wordpos->pos,&current);
                 if(param != NULL)
-                    cut(param,results,tmp_wordpos->pos+strlen(cmd));
+                    cut(param,results,tmp_wordpos->pos+strlen(cmd)+1);
                 buflastindex = bufcurrentindex ;
                 break ;
             case '{':
@@ -482,10 +481,10 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
             bufcurrentindex = p.getIndex();
             tmp_wordpos = new WordPos();
             tmp_wordpos->word = p.getChars(buflastindex,bufcurrentindex);
-            tmp_wordpos->pos = tmp_index+index ;
+            tmp_wordpos->pos = buflastindex+index ;
             results.push_back(tmp_wordpos);
-            EQS::AddContent(tmp_wordpos->word,tmp_wordpos->pos,&current);
-            cut(word,results,tmp_wordpos->pos);
+            EQS::AddContent(tmp_wordpos->word, tmp_wordpos->pos ,&current);
+            cut(word,results,index+tmp_index);
             cEnd = '\n';//handle '{}' and so on.
             buflastindex = p.getIndex();
         }
@@ -512,4 +511,101 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
         handleContent(p.getChars(buflastindex,bufcurrentindex),&current,buflastindex+index, results);
     current->nexteq = NULL ;
     combineEquations(head,results);
+}
+#define MATH_MODE 0 
+#define CHIN_MODE  1 
+int isChinWord(const char* sentence, int index, int strlen){
+    int i = index; 
+    for (;i < strlen;){
+        if (sentence[i]&0x80){
+            if (sentence[i+1]&0x40){
+                i = i + 2 ;
+            } else {
+                break;
+            }
+        } else if(sentence[i]&0xDF){
+            if (sentence[i+1]&0x5E){
+                i = i + 2 ;
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return i ;
+}
+
+void MathSegmentTool::fullCut(const char* sentence, int start, int strlen, vector<WordPos*>& results){
+    int currentmode = -1;
+    int lastmode = -1;
+
+    //设置数学和中文的buf
+    char math_buf[1024];
+    char chin_buf[1024];
+    char* tmp_sentence = (char*)malloc(sizeof(char)*1024);
+    int math_index = 0 ;
+    int chin_index = 0;
+    int current_index = 0 ;
+
+    int i, j;
+    for (i = start ; i < strlen ; ){
+        //对括号特殊处理，截取，并调用fullCut
+
+        //判断是不是数学字符，如果是，则对前面的中文执行分词操作
+        //将当前数据加入数学buf。包含对特殊数学字符的处理，如中文加号等
+        current_index = isMathWord(sentence, i, strlen);
+        if (current_index > i ){
+            currentmode = MATH_MODE;
+            if (lastmode == CHIN_MODE){
+                chin_buf[chin_index]='\0';
+                //调用中文分词
+                strcpy(tmp_sentence,chin_buf);
+                cutChineseWord(tmp_sentence, i-math_index, results);
+                chin_index = 0;
+            }
+            for (j = i ; j < current_index ; j++){
+                math_buf[math_index++] = sentence[j];
+            }
+            lastmode = currentmode;
+            i = current_index ;
+            continue ;
+        }
+        //如果不是数学字符，则判断是否为中文字符，如果是，则加入中文buf
+        //并对前面的数学公式执行分词操作
+        current_index = isChinWord(sentence, i, strlen);
+        if (current_index > i){
+            currentmode = CHIN_MODE ;
+            if (lastmode == MATH_MODE){
+                math_buf[math_index] = '\0';
+                //调用数学分词
+                strcpy(tmp_sentence, math_buf);
+                cut(tmp_sentence, results, i-chin_index);
+                math_index = 0 ;
+            }
+            for (j = i ; j < current_index ; j++){
+                chin_buf[chin_index++] = sentence[j];
+            }
+            lastmode = currentmode;
+            i = current_index ;
+            continue ;
+        }
+        //不是中文也不是数字，这时候参考前一个字符的编码归属
+        if (lastmode == MATH_MODE){
+            math_buf[math_index++] = sentence[i];
+        } else if(lastmode == CHIN_MODE){
+            chin_buf[chin_index++] = sentence[i];
+        }
+        i++;
+    }
+    if (math_index > 0 ){
+        math_buf[math_index] = '\0';
+        strcpy(tmp_sentence, math_buf);
+        cut(tmp_sentence, results, i-math_index);
+    }
+    if (chin_index > 0 ){
+        chin_buf[chin_index] = '\0';
+        strcpy(tmp_sentence, chin_buf);
+        cutChineseWord(tmp_sentence, i-chin_index, results);
+    }
 }

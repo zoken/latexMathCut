@@ -1,8 +1,8 @@
 #include <vector>
 #include <string.h>
 #include <stdlib.h>
-#include "FullSegment.hpp"
-#include "MixSegment.hpp"
+#include "JiebaCut/FullSegment.hpp"
+#include "JiebaCut/MixSegment.hpp"
 
 class ChineseCut{
     private:

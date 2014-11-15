@@ -40,7 +40,7 @@ int main(int argc, char* argv[]){
 //                    std::cout << *iter << std::endl;
 //                }
                 for(_positer = results.begin(); _positer != results.end() ;_positer++){
-                    std::cout <<(*_positer)->word << " "<< (*_positer)->pos <<std::endl;
+                    std::cout <<(*_positer)->word << " "<< (*_positer)->pos << " " << buf[(*_positer)->pos] << std::endl;
                 }
  //               std::cout << count << std::endl;
                 std::cout << "---------------------" << std::endl;

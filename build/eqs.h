@@ -13,7 +13,7 @@ class EQS{
         char* content ;
         int op ;
         char opname ;
-        char beiyong_opname ;
+        char beiyong_opname;
         int pos ;
         EQS *nexteq ;
         //静态函数，用于处理表达式
