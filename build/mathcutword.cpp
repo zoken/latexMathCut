@@ -268,7 +268,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
     EQS *head,*current; 
     head = new EQS();
     current = head ;
-    while((cThis = p.getTexChar())!='\0'){
+    while((cThis = p.getRawTexChar())!='\0'){
         bufcurrentindex = p.getIndex();
         switch(cThis){
             case '$':
@@ -280,7 +280,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                     handleContent(word,&current, buflastindex+index , results);
                 }
                 buflastindex = bufcurrentindex-1;//index buflastindex to the begin of '$' sentence
-                cNext = p.getTexChar();
+                cNext = p.getRawTexChar();
                 if (cNext == '$'){
                     tmp_index = p.getIndex();
                     word = q.CmdEquation(EQN_DOLLAR_DOLLAR | ON);
@@ -305,7 +305,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 }
                 //move index to '\' as the head of cmd sentence.
                 buflastindex = bufcurrentindex -1; 
-                cNext = p.getTexChar();
+                cNext = p.getRawTexChar();
                 if(cNext == '\\'){//only is a gap.
                     buflastindex = p.getIndex();
                     break ;
@@ -328,7 +328,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                     if (param == NULL)
                         param = p.getChars(0,0);
                 }else if(strcmp(cmd,"left")==0){
-                    cNext = p.getTexChar();
+                    cNext = p.getRawTexChar();
                     if(cNext!='.')
                         p.ungetTexChar();
                     param = q.CmdLeftRight(0);
@@ -367,9 +367,9 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 cEnd = '|';
                 break;
             case '\357':
-                cNext = p.getTexChar();
+                cNext = p.getRawTexChar();
                 if(cNext == '\274'){
-                    cNext = p.getTexChar();
+                    cNext = p.getRawTexChar();
                     if(cNext == '\210'){//中文括号
                         cThis = '(';
                         cEnd = '?';
@@ -406,7 +406,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 op = DIVOP;
                 break;
             case '\303':
-                cNext = p.getTexChar();
+                cNext = p.getRawTexChar();
                 if(cNext=='\227'){//中文乘号
                     cThis = '*';
                     op = MULOP ;
@@ -420,8 +420,8 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
             //公式中的三角形和角度应该是两种不同的操作，一种是向后合并，一种是向前合并
             //角度不做处理，只处理三角形
             case '\342': 
-                cNext = p.getTexChar();
-                cNext_Next = p.getTexChar();
+                cNext = p.getRawTexChar();
+                cNext_Next = p.getRawTexChar();
                 //角度和三角形
                 //角度为\342,\210,\240
                 if((cNext == '\226'&&cNext_Next == '\263')){
@@ -493,7 +493,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                  tmp = p.getChars(buflastindex, bufcurrentindex-1);
                  handleContent(tmp,&current,buflastindex+index, results);
             } 
-            cNext = p.getTexChar();
+            cNext = p.getRawTexChar();
             if(cNext == '=')
                 current->beiyong_opname = '=';
             else
