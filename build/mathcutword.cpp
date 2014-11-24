@@ -78,10 +78,12 @@ void MathSegmentTool::handleContent(char* word, EQS** current, int start_index ,
     WordPos* tmpwordpos ;
     if(childword!= NULL){
         EQS::AddContent(childword,start_index , current);
-        tmpwordpos = new WordPos();
-        tmpwordpos->word = childword ;
-        tmpwordpos->pos = start_index ; 
-        results.push_back(tmpwordpos);
+        if (cutMode == CUT_MODE_SIMPLE || cutMode == CUT_MODE_MIX ) {
+            tmpwordpos = new WordPos();
+            tmpwordpos->word = childword ;
+            tmpwordpos->pos = start_index ;
+            results.push_back(tmpwordpos);
+        }
     }
     int left_end = childword == NULL ? 0 :strlen(childword);
     int i = left_end ;
@@ -100,10 +102,12 @@ void MathSegmentTool::handleContent(char* word, EQS** current, int start_index ,
         childword = (char*)malloc(sizeof(char)*(right+1 - right_start));
         strcpy(childword, word+right_start);
         EQS::AddContent(childword,start_index+right_start,current);
-        tmpwordpos = new WordPos();
-        tmpwordpos->word = childword ;
-        tmpwordpos->pos = start_index + right_start ;
-        results.push_back(tmpwordpos);
+        if (cutMode == CUT_MODE_SIMPLE || cutMode == CUT_MODE_MIX) {
+            tmpwordpos = new WordPos();
+            tmpwordpos->word = childword ;
+            tmpwordpos->pos = start_index + right_start ;
+            results.push_back(tmpwordpos);
+        }
     }
     right_start = right_start < 0 ? right : right_start ;
     if(left_end < right_start){
@@ -272,6 +276,9 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
         bufcurrentindex = p.getIndex();
         switch(cThis){
             case '$':
+                /*****************************************
+                update at 2014.11.17 , latex is not a full expression.
+                ******************************************/
                 word = NULL ;
                 //if we have content which has not been handled at the head of '$' sentence ;
                 if(bufcurrentindex > (buflastindex+1)){
@@ -279,7 +286,8 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                     word = p.getChars(buflastindex,bufcurrentindex-1);
                     handleContent(word,&current, buflastindex+index , results);
                 }
-                buflastindex = bufcurrentindex-1;//index buflastindex to the begin of '$' sentence
+                buflastindex = bufcurrentindex;//escape '$';
+                /*******************
                 cNext = p.getRawTexChar();
                 if (cNext == '$'){
                     tmp_index = p.getIndex();
@@ -294,6 +302,7 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
                 EQS::AddContent(p.getChars(buflastindex,bufcurrentindex),buflastindex+index , &current); //reg '$' sentence to current level's content ; to be used as operate content.
                 cut(word,results,index+tmp_index);// cut the '$' sentence into small pieces.
                 buflastindex = bufcurrentindex ;
+                *******************************/
                 break;
             case '\\':
                 // handle the content before cmd.
@@ -510,7 +519,9 @@ void MathSegmentTool::cut(const char* sentence, vector<WordPos*>& results , int 
     if(buflastindex < bufcurrentindex)
         handleContent(p.getChars(buflastindex,bufcurrentindex),&current,buflastindex+index, results);
     current->nexteq = NULL ;
-    combineEquations(head,results);
+    if (cutMode == CUT_MODE_COMPLEX || cutMode == CUT_MODE_MIX) {
+        combineEquations(head,results);
+    }
 }
 #define MATH_MODE 0 
 #define CHIN_MODE  1 

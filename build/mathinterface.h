@@ -30,15 +30,22 @@ class Jieba_Cut : public ChineseCut{
             _fullsegment = new CppJieba::FullSegment(dict_path);
         }
         virtual ~Jieba_Cut(){}
-        virtual void cut(const char* word,std::vector<char*>& words);
+        virtual void cut(const char* word,std::vector<char**>& words);
 };
+#define CUT_MODE_SIMPLE 1
+#define CUT_MODE_COMPLEX 2
+#define CUT_MODE_MIX 3
 class MathSegmentTool{
     private:
         ChineseCut *_segment ;
         void handleContent(char*, EQS**, int, std::vector<WordPos*>&);
         void cutChineseWord(char*, int, std::vector<WordPos*>&);
         void cut(const char* sentence, std::vector<WordPos*>& results, int index);
+        int cutMode;
     public:
+        MathSegmentTool(int _cut_mode){
+            cutMode = _cut_mode;
+        }
         void cut(const char* sentence, std::vector<WordPos*>& result);
         void fullCut(const char* sentence, int start, int strlen, std::vector<WordPos*>& results);
         void regChineseCutTool(ChineseCut* chinesecut){

@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
     char buf[40960];
 //    Jieba_Cut jiebacut("../dict/jieba.dict.utf8","../dict/hmm_model.utf8","../dict/user.dict.utf8");
     Jieba_Cut jiebacut("../dict/extra_dict/jieba.dict.small.utf8");
-    MathSegmentTool mwt ;
+    MathSegmentTool mwt(CUT_MODE_SIMPLE) ;
     mwt.regChineseCutTool(&jiebacut);
     int count = 0 ;
     std::list<char*> resultlist ;
@@ -39,12 +39,24 @@ int main(int argc, char* argv[]){
 //                for(iter=resultlist.begin();iter!=resultlist.end();iter++){
 //                    std::cout << *iter << std::endl;
 //                }
+                char outbuf[4096];
+//                outbuf[0] = '\0';
+                strcpy(outbuf, buf);
                 for(_positer = results.begin(); _positer != results.end() ;_positer++){
-                    std::cout <<(*_positer)->word << " "<< (*_positer)->pos << " " << buf[(*_positer)->pos] << std::endl;
+//                    std::cout <<(*_positer)->word << " "<< (*_positer)->pos << " " << buf[(*_positer)->pos] << std::endl;
+                    if (strcmp(buf, (*_positer)->word) != 0 ) {
+                        strcat(outbuf, "\t");
+                        strcat(outbuf, (*_positer)->word);
+                    }
                 }
+                if (strlen(buf) != strlen(outbuf)){
+                    std::cout << outbuf << std::endl;
+                }
+//                std::cout << buf << " 1 n" << std::endl;
+                
  //               std::cout << count << std::endl;
-                std::cout << "---------------------" << std::endl;
-                std::cout << strlen(buf) << ":" << buf << std::endl;
+//                std::cout << "---------------------" << std::endl;
+ //               std::cout << strlen(buf) << ":" << buf << std::endl;
             
 //            sleep(1);
   //          }
