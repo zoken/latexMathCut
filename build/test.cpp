@@ -39,19 +39,12 @@ int main(int argc, char* argv[]){
 //                for(iter=resultlist.begin();iter!=resultlist.end();iter++){
 //                    std::cout << *iter << std::endl;
 //                }
-                char outbuf[4096];
-//                outbuf[0] = '\0';
-                strcpy(outbuf, buf);
                 for(_positer = results.begin(); _positer != results.end() ;_positer++){
 //                    std::cout <<(*_positer)->word << " "<< (*_positer)->pos << " " << buf[(*_positer)->pos] << std::endl;
-                    if (strcmp(buf, (*_positer)->word) != 0 ) {
-                        strcat(outbuf, "\t");
-                        strcat(outbuf, (*_positer)->word);
-                    }
+                        strcat(buf, "\t");
+                        strcat(buf, (*_positer)->word);
                 }
-                if (strlen(buf) != strlen(outbuf)){
-                    std::cout << outbuf << std::endl;
-                }
+                std::cout << buf << std::endl;
 //                std::cout << buf << " 1 n" << std::endl;
                 
  //               std::cout << count << std::endl;
