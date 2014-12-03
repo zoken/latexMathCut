@@ -27,5 +27,6 @@ LATEX WORD CUT
     1. v1.0 finished.
     2. v1.1 finished. fix some bugs and add more math operate.
     3. v1.5 finished. change usage. add word location info. see test.cpp & mathinterface.h
+    4. v1.6.0 finished. add some math word into jieba word dict.
     
 
